@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS - Calculator By Yuri Adão </title>
+</head>
+<body>
+  <main class="container">
+    <section class="calculator">
+      <header class="calculator__display">
+        <h2 class="calculator__display-current"></h2>
+        <p class="calculator__display-history"></p>
+      </header>
+      <article class="calculator__buttons">
+        <button type="button"data-action="cancel" id ="calculator__button--cancel"class="calculator__button--operator calculator--button"> C </button>
+        <button type="button"data-operation="%" class="calculator__button--operator calculator--button">%</button>
+        <button type="button"data-operation="/" class="calculator__button--operator calculator--button">/</button>
+        <button type="button"data-operation="*" class="calculator__button--operator calculator--button">X</button>
+        <button type="button" class="calculator__button--number calculator--button">7</button>
+        <button type="button" class="calculator__button--number calculator--button">8</button>
+        <button type="button" class="calculator__button--number calculator--button">9</button>
+        <button type="button"data-operation="-" class="calculator__button--operator calculator--button">-</button>
+        <button type="button" class="calculator__button--number calculator--button">4</button>
+        <button type="button" class="calculator__button--number calculator--button">5</button>
+        <button type="button" class="calculator__button--number calculator--button">6</button>
+        <button type="button"data-operation="+" class="calculator__button--operator calculator--button"> + </button>
+        <button type="button" class="calculator__button--number calculator--button">1</button>
+        <button type="button" class="calculator__button--number calculator--button">2</button>
+        <button type="button" class="calculator__button--number calculator--button">3</button>
+        <button type="button"data-operation="equal" id="calculator__button--equal" class="calculator--button">=</button>
+        <button type="button" id="calculator__button--zero" class="calculator__button--number calculator--button">0</button>
+        <button type="button"data-action="comma" class="calculator__button--operator calculator--button"> , </button>
+      </article>
+    </section>
+  </main>
+  <script src="./assets/js/script.js"></script>
+</body>
+</html>
