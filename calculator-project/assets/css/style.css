@@ -3,6 +3,14 @@
   margin: 0;
   box-sizing: border-box;
 }
+body {
+  background-color: #1e1f2b;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+
+  background-size: 40px 40px;
+}
 button {
   margin: 0;
   padding: 0;
@@ -10,50 +18,42 @@ button {
   background-color: transparent;
 }
 :root {
+  /*Token System*/
 
-/*Token System*/
+  /*********** Colors scheme *********/
 
+  --color-background-container: #2a2c3b;
+  --color-buttons-default: #526576; /*only border*/
+  --color-buttons-hover: #323548;
+  --color-numbers-active: #2f1f39;
+  --color-operators-active: #4f155d;
+  --color-button-equal: #fd0b72;
 
-/*********** Colors scheme *********/
+  --color-white: #ffffff;
+  --color-secundary: #b3b3b3;
 
---color-background-container:     #2A2C3B;
---color-buttons-default :         #526576; /*only border*/
---color-buttons-hover :           #323548;
---color-numbers-active:           #2F1F39;
---color-operators-active:         #4F155D;
---color-button-equal :            #FD0B72;
+  /*********Spacing Scale**********/
 
---color-white :                   #FFFFFF;
---color-secundary:                #B3B3B3;
+  --space-xxs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
 
-/*********Spacing Scale**********/
+  /********* TYPOGRAPHY *******/
 
---space-xxs: 0.5rem;
---space-xs : 0.75rem;
---space-sm : 1rem;
---space-md : 1.5rem;
---space-lg : 2rem;
---space-xl : 3rem;
+  --text-xs: 0.75rem;
+  --text-sm: 1rem;
+  --text-md: 1.5rem;
+  --text-lg: 2rem;
 
+  /********* Radius *********/
 
-/********* TYPOGRAPHY *******/
-
-
-
---text-xs:    0.75rem;
---text-sm:    1rem;
---text-md:    1.5rem;
---text-lg:    2rem;
-
-/********* Radius *********/
-
-
---radius-sm:  0.25rem;
---radius-md:  0.75rem;
---radius-lg:   1rem;
---radius-full: 999px;
-
-
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 999px;
 }
 .container {
   width: 30rem;
@@ -63,55 +63,56 @@ button {
 .calculator {
   width: 60%;
   border-radius: var(--radius-lg);
-  margin: var(--space-xl) auto ;
+  margin: var(--space-xl) auto;
   padding: var(--space-xs) var(--space-sm);
   background-color: var(--color-background-container);
-  
 }
 .calculator__display {
   display: flex;
-  flex-direction:column-reverse;
+  flex-direction: column-reverse;
   align-items: flex-end;
+  gap: 15;
   margin: var(--space-xs) 0;
   padding: var(--space-xs);
   width: 100%;
   height: 10rem;
-  border-bottom: solid 2px var(--color-buttons-hover) ;
+  border-bottom: solid 2px var(--color-buttons-hover);
   color: var(--color-secundary);
 }
 .calculator__display-current {
   font-size: var(--text-lg);
-  
+
+  word-break: break-all;
 }
-.calculator__display-history{
+.calculator__display-history {
   margin-block-start: var(--space-sm);
+  word-break: break-all;
   order: -1;
 }
 .calculator__buttons {
   display: grid;
   grid-template-columns: repeat(4, 2fr);
   grid-template-rows: repeat(5, 4rem);
-  gap: 4px ;
-  margin-inline: var(--space-xxs);  
+  gap: 4px;
+  margin-inline: var(--space-xxs);
 }
-.calculator--button {    
+.calculator--button {
   color: var(--color-white);
-  border-radius: var(--radius-md);  
+  border-radius: var(--radius-md);
 }
-.calculator--button:hover {    
+.calculator--button:hover {
   color: var(--color-white);
   background-color: var(--color-buttons-hover);
   border-radius: var(--radius-md);
-    
 }
 #calculator__button--zero {
   grid-column: span 2;
 }
-#calculator__button--equal {
+.calculator__button--equal {
   grid-row: span 2;
   background-color: var(--color-button-equal);
 }
-#calculator__button--cancel {
+.calculator__button--cancel {
   background-color: var(--color-operators-active);
 }
 
