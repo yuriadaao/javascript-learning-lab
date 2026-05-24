@@ -9,50 +9,42 @@ const buttonsOperator = document.querySelectorAll(
 );
 
 let calculatorState = { previousValue: "", operator: "", currentValue: "" }; // State (responsability operation)
-let operationHistory = [{}];
+
+let operationHistory = [];
 
 buttonsNumber.forEach((numbers) => {
   numbers.addEventListener("click", (event) => {
-    if (
-      numbers &&
-      calculatorState.previousValue !== "" &&
-      calculatorState.operator !== ""
-    ) {
+    if (numbers && calculatorState.operator !== "") {
       calculatorState.currentValue += event.target.innerText;
       display.innerText = calculatorState.currentValue;
     }
+
     if (numbers && calculatorState.operator === "") {
       calculatorState.previousValue += event.target.innerText;
       display.innerText = calculatorState.previousValue;
     }
+
+    console.log(calculatorState);
     commaValidation(
       calculatorState.previousValue,
       calculatorState.currentValue,
     );
-
-    // if (calculatorState.previousValue && calculatorState.operator !== "") {
-    //   display.innerText = calculatorState.currentValue;
-    // } else {
-    //   display.innerText = calculatorState.previousValue;
-    // }
   });
 });
 
 buttonsOperator.forEach((operators) => {
   operators.addEventListener("click", (event) => {
-    calculatorState.operator = event.target.dataset.operation;
+    calculatorState.operator += event.target.dataset.operation;
 
-    if (calculatorState.operator) {
-      history.innerText +=
-        calculatorState.previousValue + calculatorState.operator;
-      display.innerText = "";
-      console.log(calculatorState.previousValue);
-      console.log(calculatorState.currentValue);
-      commaValidation(
-        calculatorState.previousValue,
-        calculatorState.currentValue,
-      );
+    if (operators) {
+      operatorValidation();
     }
+    commaValidation(
+      calculatorState.previousValue,
+      calculatorState.currentValue,
+    );
+    console.log(calculatorState);
+    console.log(calculatorState.operator.length);
   });
 });
 
@@ -80,63 +72,47 @@ buttonEqual.addEventListener("click", (event) => {
     calculatorState.previousValue +
     calculatorState.operator +
     calculatorState.currentValue;
+  display.innerText = result(
+    calculatorState.previousValue,
+    calculatorState.currentValue,
+    calculatorState.operator,
+  );
+  calculatorState.previousValue = result(
+    calculatorState.previousValue,
+    calculatorState.currentValue,
+    calculatorState.operator,
+  );
 
-  if (calculatorState.operator === "+") {
-    display.innerText = sum(
-      calculatorState.previousValue,
-      calculatorState.currentValue,
-    );
-  }
-  if (calculatorState.operator === "-") {
-    display.innerText = subtraction(
-      calculatorState.previousValue,
-      calculatorState.currentValue,
-    );
-  }
-  if (calculatorState.operator === "/") {
-    display.innerText = division(
-      calculatorState.previousValue,
-      calculatorState.currentValue,
-    );
-  }
-  if (calculatorState.operator === "*") {
-    display.innerText = multiply(
-      calculatorState.previousValue,
-      calculatorState.currentValue,
-    );
-  }
-  if (calculatorState.operator === "%") {
-    display.innerText = percetange(
-      calculatorState.previousValue,
-      calculatorState.currentValue,
-    );
-  }
   commaValidation(calculatorState.previousValue, calculatorState.currentValue);
 });
 
 buttonCancel.addEventListener("click", (event) => {
   display.innerText = "";
   history.innerText = "";
-  calculatorState.previousValue = "";
-  calculatorState.operator = "";
-  calculatorState.currentValue = "";
+  if (
+    calculatorState.previousValue !== "" ||
+    calculatorState.previousValue !== "" ||
+    calculatorState.previousValue !== ""
+  ) {
+    resetState();
+  } else {
+    operationHistory = [];
+  }
 });
 
-function sum(previousValue, currentValue) {
-  return Number(previousValue) + Number(currentValue);
-}
-function subtraction(previousValue, currentValue) {
-  return Number(previousValue) - Number(currentValue);
-}
-function division(previousValue, currentValue) {
-  return Number(previousValue) / Number(currentValue);
-}
-function multiply(previousValue, currentValue) {
-  return Number(previousValue) * Number(currentValue);
-}
-function percetange(previousValue, currentValue) {
-  return (Number(previousValue) * Number(currentValue)) / 100;
-}
+let result = (previousValue, currentValue, operator) => {
+  if (operator === "+") {
+    return Number(previousValue) + Number(currentValue);
+  } else if (operator === "-") {
+    return Number(previousValue) - Number(currentValue);
+  } else if (operator === "/") {
+    return Number(previousValue) / Number(currentValue);
+  } else if (operator === "*") {
+    return Number(previousValue) * Number(currentValue);
+  } else if (operator === "%") {
+    return (Number(previousValue) * Number(currentValue)) / 100;
+  }
+};
 
 function commaValidation(previousValue, currentValue) {
   let commaP = 0;
@@ -160,7 +136,51 @@ function commaValidation(previousValue, currentValue) {
       currentValue = "";
       display.innerText = "err.";
       history.innerText = "";
+      resetState();
     }
-    console.log([commaC, commaP]);
   }
+}
+function operatorValidation() {
+  if (calculatorState.operator.length == 2) {
+    calculatorState.operator = calculatorState.operator[1];
+    calculatorState.currentValue = "";
+    display.innerText =
+      calculatorState.previousValue + calculatorState.operator;
+  }
+  if (calculatorState.operator.length > 2) {
+    display.innerText = "err.";
+    history.innerText = "";
+    resetState();
+  } else if (
+    calculatorState.operator !== "" &&
+    calculatorState.operator[1] === "-"
+  ) {
+    display.innerText = calculatorState.currentValue = "-";
+    calculatorState.operator = calculatorState.operator[0];
+  } else if (
+    calculatorState.operator === "-" &&
+    calculatorState.previousValue === ""
+  ) {
+    display.innerText = calculatorState.previousValue = "-";
+    calculatorState.operator = "";
+  } else if (
+    calculatorState.previousValue !== "" &&
+    calculatorState.previousValue !== "-"
+  ) {
+    display.innerText = "";
+    history.innerText =
+      calculatorState.previousValue + calculatorState.operator;
+  }
+}
+// function historyOperation(previousValue, currentValue, operator) {
+//   operationHistory += operationHistory.push(previousValue);
+//   operationHistory += operationHistory.push(operator);
+//   operationHistory += operationHistory.push(currentValue);
+
+//   return operationHistory;
+// }
+function resetState() {
+  calculatorState.previousValue = "";
+  calculatorState.currentValue = "";
+  calculatorState.operator = "";
 }
