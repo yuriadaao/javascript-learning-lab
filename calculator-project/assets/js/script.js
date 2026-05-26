@@ -3,6 +3,7 @@ const history = document.querySelector(".calculator__display-history");
 const buttonCancel = document.querySelector(".calculator__button--cancel");
 const buttonEqual = document.querySelector(".calculator__button--equal");
 const buttonComma = document.querySelector(".calculator__button--comma");
+const historyContent = document.querySelector(".history");
 const buttonsNumber = document.querySelectorAll(".calculator__button--number");
 const buttonsOperator = document.querySelectorAll(
   ".calculator__button--operator",
@@ -17,14 +18,11 @@ buttonsNumber.forEach((numbers) => {
     if (numbers && calculatorState.operator !== "") {
       calculatorState.currentValue += event.target.innerText;
       display.innerText = calculatorState.currentValue;
-    }
-
-    if (numbers && calculatorState.operator === "") {
+    } else if (numbers && calculatorState.operator === "") {
       calculatorState.previousValue += event.target.innerText;
       display.innerText = calculatorState.previousValue;
     }
 
-    console.log(calculatorState);
     commaValidation(
       calculatorState.previousValue,
       calculatorState.currentValue,
@@ -43,8 +41,6 @@ buttonsOperator.forEach((operators) => {
       calculatorState.previousValue,
       calculatorState.currentValue,
     );
-    console.log(calculatorState);
-    console.log(calculatorState.operator.length);
   });
 });
 
@@ -68,21 +64,25 @@ buttonComma.addEventListener("click", (event) => {
 });
 
 buttonEqual.addEventListener("click", (event) => {
-  history.innerText =
-    calculatorState.previousValue +
-    calculatorState.operator +
-    calculatorState.currentValue;
-  display.innerText = result(
-    calculatorState.previousValue,
-    calculatorState.currentValue,
-    calculatorState.operator,
-  );
-  calculatorState.previousValue = result(
-    calculatorState.previousValue,
-    calculatorState.currentValue,
-    calculatorState.operator,
-  );
+  if (calculatorState.previousValue && calculatorState.currentValue !== "") {
+    fillHistory();
 
+    history.innerText =
+      calculatorState.previousValue +
+      calculatorState.operator +
+      calculatorState.currentValue;
+    display.innerText = result(
+      calculatorState.previousValue,
+      calculatorState.currentValue,
+      calculatorState.operator,
+    );
+
+    calculatorState.previousValue = result(
+      calculatorState.previousValue,
+      calculatorState.currentValue,
+      calculatorState.operator,
+    );
+  }
   commaValidation(calculatorState.previousValue, calculatorState.currentValue);
 });
 
@@ -95,8 +95,14 @@ buttonCancel.addEventListener("click", (event) => {
     calculatorState.previousValue !== ""
   ) {
     resetState();
-  } else {
+  } else if (
+    calculatorState.previousValue === "" &&
+    calculatorState.previousValue === "" &&
+    calculatorState.previousValue === "" &&
+    operationHistory !== []
+  ) {
     operationHistory = [];
+    historyContent.innerText = "";
   }
 });
 
@@ -172,15 +178,33 @@ function operatorValidation() {
       calculatorState.previousValue + calculatorState.operator;
   }
 }
-// function historyOperation(previousValue, currentValue, operator) {
-//   operationHistory += operationHistory.push(previousValue);
-//   operationHistory += operationHistory.push(operator);
-//   operationHistory += operationHistory.push(currentValue);
 
-//   return operationHistory;
-// }
 function resetState() {
   calculatorState.previousValue = "";
   calculatorState.currentValue = "";
   calculatorState.operator = "";
+}
+
+function fillHistory() {
+  operationHistory.push({
+    previousValue: calculatorState.previousValue,
+    operator: calculatorState.operator,
+    currentValue: calculatorState.currentValue,
+    result: result(
+      calculatorState.previousValue,
+      calculatorState.currentValue,
+      calculatorState.operator,
+    ),
+  });
+  let count = operationHistory.length - 1;
+
+  operationHistory.length > 11
+    ? operationHistory.unshift
+    : (historyContent.innerText +=
+        operationHistory[count].previousValue +
+        operationHistory[count].operator +
+        operationHistory[count].currentValue +
+        " = " +
+        operationHistory[count].result +
+        "\n");
 }
