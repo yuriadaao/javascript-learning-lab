@@ -134,7 +134,4 @@ button {
   border-radius: var(--radius-md);
   padding: var(--space-md);
   text-align: right;
-  /* overflow-y: scroll;
-  scrollbar-color: var(--color-numbers-active) var(--color-operators-active);
-  scroll-margin: var(--space-sm); */
 }
