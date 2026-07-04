@@ -36,7 +36,7 @@ function captureInput() {
         showSignin();
         break;
       case "E":
-        editProfile(currentUser);
+        editProfile();
         break;
       case "D":
         deleteUser(currentUser, users);
@@ -115,9 +115,7 @@ function showSignin() {
 
     `);
 
-  rl.question("Please insert your full name: ", (fullName) => {
-    createUser(fullName);
-  });
+  createUser();
 }
 
 function showDashBoard() {
@@ -142,10 +140,11 @@ function showDashBoard() {
       0 - Exit`);
 
   captureInput();
-  verifyProfile(users);
+  verifyProfile(currentUser);
 }
 function showMyProfile() {
   currentPage = "PROFILE";
+  verifyProfile(currentUser);
   console.log(`
 
      __________________________________________
@@ -174,8 +173,14 @@ function showMyProfile() {
 
   captureInput();
 }
-
-//                    FLOW'S VALIDATION
+//          ****  DATA VALIDATION  ****
+function nameValidation(fullName) {
+  if (!fullName || /\d/.test(fullName) || fullName.length < 8) {
+    inputErr(fullName);
+    return false;
+  }
+  return true;
+}
 function emailValidation(email) {
   if (!email || !/\./.test(email) || !/@/.test(email)) {
     inputErr(email);
@@ -183,9 +188,7 @@ function emailValidation(email) {
   }
   return true;
 }
-
-// (URGENTE TÁ UMA ZONA !!)
-function passwordValidation(password, array, newUser) {
+function passwordValidation(password) {
   if (
     password.length < 6 ||
     !password ||
@@ -194,62 +197,40 @@ function passwordValidation(password, array, newUser) {
     !/[A-Z]/.test(password)
   ) {
     inputErr(password);
-  } else {
-    rl.question("Confirm your password: ", (rpassword) => {
-      if (password !== rpassword) {
-        inputErr(password);
-      }
-      newUser.password = password;
-      currentUser = newUser;
-      users.push(currentUser);
-      saveUser(users);
-      showDashBoard();
-    });
+    return false;
   }
+  return true;
+}
+function birthDateValidation(birthDate) {
+  if (!birthDate || !/\d{2}\/\d{2}\/\d{4}/.test(birthDate)) {
+    inputErr(birthDate);
+    return false;
+  }
+  return true;
+}
+function genderValidation(gender) {
+  if (!gender || /\d/.test(gender) || gender.length < 4) {
+    inputErr(gender);
+    return false;
+  }
+  return true;
+}
+function stateValidation(state) {
+  if (!state || /\d/.test(state) || state.length < 4) {
+    inputErr(state);
+    return false;
+  }
+  return true;
+}
+function countryValidation(country) {
+  if (!country || /\d/.test(country) || country.length < 2) {
+    inputErr(country);
+    return false;
+  }
+  return true;
 }
 
-function nameValidation(data) {
-  rl.question("Enter your full name : ", (fullName) => {
-    if (!fullName || /\d/.test(fullName) || fullName.length < 8) {
-      inputErr(fullName);
-      return false;
-    }
-    return true;
-  });
-}
-function birthDateValidation(data) {
-  rl.question("Enter your brith date : (ex.: 01/01/1991) ", (birthDate) => {
-    if (!birthDate || !/\d{2}\/\d{2}\/\d{4}/.test(birthDate)) {
-      inputErr(birthDate);
-      return;
-    }
-  });
-}
-function genderValidation(data) {
-  rl.question("Enter your Gender: ", (gender) => {
-    if (!gender || /\d/.test(gender) || gender.length < 4) {
-      inputErr(gender);
-      return;
-    }
-  });
-}
-function adressValidation(data) {
-  rl.question("Enter your country :(ex.: BR or Brazil) ", (country) => {
-    if (!country || /\d/.test(country) || country.length < 2) {
-      inputErr(country);
-      return;
-    }
-
-    rl.question("Enter your state : ", (state) => {
-      if (!state || /\d/.test(state) || state.length < 4) {
-        inputErr(state);
-        return;
-      }
-    });
-  });
-}
-
-//                       FLOW'S FUNCTION SYSTEM
+//                   *****  FLOW FUNCTION SYSTEM  ****
 
 // CRIAÇÃO DE ID'S
 function createID(array) {
@@ -262,8 +243,8 @@ function createID(array) {
     return newId + 1;
   }
 }
-// CRIAÇÃO DE USUÁRIOS --- (ATENÇÃO- MELHORAR ESQUEMA DE VALIDAÇÃO E RESPONSABILIDADES)
-function createUser(fullName) {
+// CRIAÇÃO DE USUÁRIOS --- (Resolvido)
+function createUser() {
   let newUser = {
     id: createID(users),
     fullName: null,
@@ -277,21 +258,31 @@ function createUser(fullName) {
     donations: [],
     fullProfile: false,
   };
-  if (!fullName || /\d/.test(fullName) || fullName.length < 8) {
-    inputErr(fullName);
-    return;
-  } else {
-    newUser.fullName = fullName;
-
-    rl.question("Please insert your email: ", (email) => {
-      emailValidation(email, users);
-      newUser.email = email;
-
-      rl.question("Insert your password: ", (password) => {
-        passwordValidation(password, users, newUser);
+  rl.question("Please enter your full name: \n", (fullName) => {
+    if (nameValidation(fullName)) {
+      newUser.fullName = fullName;
+      rl.question("Please insert your email: ", (email) => {
+        if (emailValidation(email, users)) {
+          newUser.email = email;
+          rl.question("Insert your password: ", (password) => {
+            if (passwordValidation(password, users, newUser)) {
+              rl.question("Confirm your password: ", (rpassword) => {
+                if (password !== rpassword) {
+                  inputErr(password);
+                  return;
+                }
+                newUser.password = password;
+                currentUser = newUser;
+                users.push(currentUser);
+                saveUser(users);
+                showDashBoard();
+              });
+            }
+          });
+        }
       });
-    });
-  }
+    }
+  });
 }
 
 // LOGIN ITEGRATION
@@ -299,10 +290,7 @@ function createUser(fullName) {
 function login(array) {
   if (array.length === 0) showSignin();
   rl.question("Please insert your email : ", (email) => {
-    if (!email || !emailValidation(email)) {
-      inputErr(email);
-      return;
-    } else {
+    if (emailValidation(email)) {
       currentUser = findUserByEmail(array, email);
 
       if (!currentUser || currentUser.email !== email) {
@@ -330,8 +318,49 @@ function findUserByEmail(array, email) {
   }
   return user;
 }
-
-function editProfile(array) {
+// Editando nome
+function editName() {
+  rl.question("Enter your full name", (fullName) => {
+    if (nameValidation(fullName)) {
+      currentUser.fullName = fullName;
+      saveUser(users);
+    }
+  });
+}
+//Editando data de nascimento
+function editBirthDate() {
+  console.log("ex.:(13/09/1991) ");
+  rl.question("Enter your Birth date:\n ", (birthDate) => {
+    if (birthDateValidation(birthDate)) {
+      currentUser.birthDate = birthDate;
+      saveUser(users);
+    }
+  });
+}
+//Editando Gênero
+function editGender() {
+  rl.question("Enter your gender: ", (gender) => {
+    if (genderValidation(gender)) {
+      currentUser.gender = gender;
+      saveUser(users);
+    }
+  });
+}
+//Editando endereço
+function editAdress() {
+  rl.question("Enter your state: ", (state) => {
+    if (stateValidation(state)) {
+      rl.question("Enter your country: ", (country) => {
+        if (countryValidation(country)) {
+          currentUser.adress = `${state}, ${country}`;
+          saveUser(users);
+        }
+      });
+    }
+  });
+}
+// Fluxo de Edição de perfil
+function editProfile() {
   console.log(`
   ATENTION!
   =====================================================\n  
@@ -351,38 +380,27 @@ function editProfile(array) {
       data !== "adress"
     ) {
       inputErr(data);
-    }
-    //(ATENÇÃO - A VALIDAÇÃO JA ESTÁ SALVANDO - ALTERAR RESPONSABILIDADE DE FUNÇÃO)
-    switch (data) {
-      case "name":
-        if (nameValidation(data)) {
-          currentUser.fullName = data;
-          saveUser(users);
-          showMyProfile();
-        }
-        break;
-      case "birthdate":
-        if (birthDateValidation(data)) {
-          currentUser.birthDate = data;
-          saveUser(users);
-          showMyProfile();
-        }
-        break;
-      case "gender":
-        genderValidation(data);
-        currentUser.gender = data;
-        saveUser(users);
-        showMyProfile();
-        break;
-      case "adress":
-        adressValidation(data);
-        currentUser.adress = `${state},${country}`;
-        saveUser(users);
-        showMyProfile();
-        break;
+      return;
+    } else {
+      switch (data) {
+        case "name":
+          editName();
+          break;
+        case "birthdate":
+          editBirthDate();
+          break;
+        case "gender":
+          editGender();
+          break;
+        case "adress":
+          editAdress();
+          break;
+      }
+      showMyProfile();
     }
   });
 }
+// Deletando Usuário ( Atualmente possuí Bug de replicação quando o banco é zerado)
 function deleteUser(user, array) {
   console.log(`Press "Y" to confirm`);
   rl.question("Do you really want to delete this? ", (answer) => {
@@ -400,18 +418,18 @@ function deleteUser(user, array) {
     }
   });
 }
-// VERIFICA DADOS DO PERFIL
+// Checagem de perfil (Parou de Funcionar)
 function verifyProfile(array) {
   !array.fullName || !array.birthDate || !array.gender || !array.adress
     ? false
     : true;
   saveUser(array);
 }
-
+//Salvando no Banco
 function saveUser(array) {
   fs.writeFileSync("database.json", JSON.stringify(array));
 }
-
+//Saindo do Usuário
 function logout() {
   currentUser = null;
   showHome();
@@ -433,7 +451,7 @@ function exitInput() {
       showHome();
       break;
     case "SIGNIN":
-      showLogin();
+      showHome();
       break;
     case "DASHBOARD":
       logout();
