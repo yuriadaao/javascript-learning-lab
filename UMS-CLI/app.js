@@ -39,7 +39,7 @@ function captureInput() {
         editProfile();
         break;
       case "D":
-        deleteUser(currentUser, users);
+        deleteUser();
         break;
       case "L":
         logout();
@@ -53,23 +53,45 @@ function captureInput() {
   });
 }
 //                     FLOW'S PAGE
+function renderHeader() {
+  if (
+    currentPage === "HOME" ||
+    currentPage === "LOGIN" ||
+    currentPage === "SIGNIN"
+  ) {
+    console.log(`  
+    ╔═════════════════════════════════════════════════════════════╗
+    ║                                                             ║
+    ║                          UMS - CLI                          ║
+    ║                                                             ║
+    ╚═════════════════════════════════════════════════════════════╝
+      Page: ${currentPage}                      
+      User: ---                    
+      Plan: ---                    
+     _____________________________________________________________`);
+  } else {
+    console.log(`  
+    ╔═════════════════════════════════════════════════════════════╗
+    ║                                                             ║
+    ║                          UMS - CLI                          ║
+    ║                                                             ║
+    ╚═════════════════════════════════════════════════════════════╝
+      Page: ${currentPage}          
+      User: ${currentUser.fullName}  
+      Plan: ${currentUser.plan}      
+     _____________________________________________________________
+                                                          L- Logout`);
+  }
+}
+
 function showHome() {
   currentPage = "HOME";
+  renderHeader();
   console.log(`
-
-    __________________________________________
-    ******************************************
-    *                                        * 
-    *              - UMS-CLI -               *
-    *                                        *
-    ******************************************
-    ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨ 
-                                             `);
-  console.log(`
-    Select do you need trought the numbers :
+     Select do you need trought the numbers :
 
      2 - Login
-     3 - Sign in\n\n\n\n\n\n
+     3 - Sign in\n\n\n\n\n
      0 - Exit`);
 
   captureInput();
@@ -77,38 +99,20 @@ function showHome() {
 
 function showLogin() {
   currentPage = "LOGIN";
-  console.log(`
+  renderHeader();
 
-   __________________________________________
-   ******************************************
-   *                                        * 
-   *            - LOGIN SCREEN -            *
-   *                                        *
-   ******************************************
-   ========================================== 
-                                            `);
-
-  console.log(`
-    
+  console.log(`    
 
      1 - Home
-     3 - Sign in\n\n\n\n\n\n
+     3 - Sign in\n\n\n\n\n
      0 - Exit`);
 
-  login(users);
+  login();
+  captureInput();
 }
 function showSignin() {
   currentPage = "SIGNIN";
-  console.log(`
-
-   __________________________________________
-   ******************************************
-   *                                        * 
-   *           - SIGN IN SCREEN -           *
-   *                                        *
-   ******************************************
-   ========================================== 
-                                             `);
+  renderHeader();
   console.log(`
   
    Follow the steps to Sign in:
@@ -116,20 +120,17 @@ function showSignin() {
     `);
 
   createUser();
+  captureInput();
 }
 
 function showDashBoard() {
   currentPage = "DASHBOARD";
-  console.log(`
+  renderHeader();
+  if (!currentUser.fullProfile) {
+    console.log(`   
+     You need finish your registration! `);
+  }
 
-     __________________________________________
-     ******************************************
-     *                                        * 
-     *          Welcome your Dashboard        *
-     *                                        *
-     ******************************************
-     ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-                                      L- Logout `);
   console.log(` 
       4- My Profile 
       5- Create Ofter 
@@ -140,24 +141,14 @@ function showDashBoard() {
       0 - Exit`);
 
   captureInput();
-  verifyProfile(currentUser);
 }
 function showMyProfile() {
   currentPage = "PROFILE";
   verifyProfile(currentUser);
-  console.log(`
-
-     __________________________________________
-     ******************************************
-     *                                        * 
-     *          Welcome your Profile          *
-     *                                        *
-     ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨ 
-     ******************************************
-                                    L- Logout`);
+  renderHeader();
   if (!currentUser.fullProfile) {
     console.log(`   
-        Complete your registration : \n\n`);
+        Complete your registration : \n`);
   }
   console.log(`
         Nome:        ${currentUser.fullName || "Unfinished"} \n  
@@ -167,11 +158,11 @@ function showMyProfile() {
         Email:       ${currentUser.email || "Unfinished"}  \n\n
         Plano:       ${currentUser.plan || "Unfinished"} \n `);
   console.log(` 
-          ${currentUser.fullProfile}
-          
-          E - Edit     D - Delete     0 - Exit `);
+ \n\n\n E - Edit       D - Delete          0 - Exit `);
 
   captureInput();
+  verifyProfile();
+  saveUser(users);
 }
 //          ****  DATA VALIDATION  ****
 function nameValidation(fullName) {
@@ -243,7 +234,7 @@ function createID(array) {
     return newId + 1;
   }
 }
-// CRIAÇÃO DE USUÁRIOS --- (Resolvido)
+// CRIAÇÃO DE USUÁRIOS
 function createUser() {
   let newUser = {
     id: createID(users),
@@ -256,17 +247,17 @@ function createUser() {
     plan: "FREE",
     role: "user",
     donations: [],
-    fullProfile: false,
+    fullProfile: null,
   };
   rl.question("Please enter your full name: \n", (fullName) => {
     if (nameValidation(fullName)) {
       newUser.fullName = fullName;
-      rl.question("Please insert your email: ", (email) => {
+      rl.question("Please insert your email: \n", (email) => {
         if (emailValidation(email, users)) {
           newUser.email = email;
-          rl.question("Insert your password: ", (password) => {
+          rl.question("Insert your password: \n", (password) => {
             if (passwordValidation(password, users, newUser)) {
-              rl.question("Confirm your password: ", (rpassword) => {
+              rl.question("Confirm your password: \n", (rpassword) => {
                 if (password !== rpassword) {
                   inputErr(password);
                   return;
@@ -287,28 +278,27 @@ function createUser() {
 
 // LOGIN ITEGRATION
 
-function login(array) {
-  if (array.length === 0) showSignin();
-  rl.question("Please insert your email : ", (email) => {
-    if (emailValidation(email)) {
-      currentUser = findUserByEmail(array, email);
+function login() {
+  if (users.length === 0) {
+    showSignin();
+  } else {
+    rl.question("Please insert your email : ", (email) => {
+      if (emailValidation(email)) {
+        currentUser = findUserByEmail(users, email);
 
-      if (!currentUser || currentUser.email !== email) {
-        inputErr(email);
-        return;
-      } else {
         rl.question("Now your password : ", (password) => {
           if (password !== currentUser.password) {
             inputErr(password);
             return;
           } else {
+            verifyProfile();
             showDashBoard();
             return currentUser;
           }
         });
       }
-    }
-  });
+    });
+  }
 }
 // ENCONTRANDO USUÁRIO POR EMAIL
 function findUserByEmail(array, email) {
@@ -320,40 +310,40 @@ function findUserByEmail(array, email) {
 }
 // Editando nome
 function editName() {
-  rl.question("Enter your full name", (fullName) => {
+  rl.question("Enter your full name: \n", (fullName) => {
     if (nameValidation(fullName)) {
       currentUser.fullName = fullName;
-      saveUser(users);
+      showMyProfile();
     }
   });
 }
 //Editando data de nascimento
 function editBirthDate() {
-  console.log("ex.:(13/09/1991) ");
-  rl.question("Enter your Birth date:\n ", (birthDate) => {
+  console.log(" ");
+  rl.question("Enter your Birth date:'ex.:(13/09/1991)'\n ", (birthDate) => {
     if (birthDateValidation(birthDate)) {
       currentUser.birthDate = birthDate;
-      saveUser(users);
+      showMyProfile();
     }
   });
 }
 //Editando Gênero
 function editGender() {
-  rl.question("Enter your gender: ", (gender) => {
+  rl.question("Enter your gender: \n", (gender) => {
     if (genderValidation(gender)) {
       currentUser.gender = gender;
-      saveUser(users);
+      showMyProfile();
     }
   });
 }
 //Editando endereço
 function editAdress() {
-  rl.question("Enter your state: ", (state) => {
+  rl.question("Enter your state: \n", (state) => {
     if (stateValidation(state)) {
       rl.question("Enter your country: ", (country) => {
         if (countryValidation(country)) {
           currentUser.adress = `${state}, ${country}`;
-          saveUser(users);
+          showMyProfile();
         }
       });
     }
@@ -401,29 +391,35 @@ function editProfile() {
   });
 }
 // Deletando Usuário ( Atualmente possuí Bug de replicação quando o banco é zerado)
-function deleteUser(user, array) {
+function deleteUser() {
   console.log(`Press "Y" to confirm`);
   rl.question("Do you really want to delete this? ", (answer) => {
     if (answer !== "Y") {
       inputErr(answer);
-    } else if (answer === "Y" && array.length <= 1) {
-      array = [];
-      saveUser(array);
+    } else if (answer === "Y" && users.length <= 1) {
+      users = [];
+      saveUser(users);
       logout();
     } else {
-      const usersUpdate = array.filter((users) => users.id !== user.id);
-      array = usersUpdate;
-      saveUser(array);
+      const usersUpdate = users.filter((user) => user.id !== currentUser.id);
+      users = usersUpdate;
+      saveUser(users);
       logout();
     }
   });
 }
-// Checagem de perfil (Parou de Funcionar)
-function verifyProfile(array) {
-  !array.fullName || !array.birthDate || !array.gender || !array.adress
-    ? false
-    : true;
-  saveUser(array);
+// Verifica integridade de perfil
+function verifyProfile() {
+  if (
+    !currentUser.fullName ||
+    !currentUser.birthDate ||
+    !currentUser.gender ||
+    !currentUser.adress
+  ) {
+    return (currentUser.fullProfile = false);
+  } else {
+    return (currentUser.fullProfile = true);
+  }
 }
 //Salvando no Banco
 function saveUser(array) {
