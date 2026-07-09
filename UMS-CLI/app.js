@@ -35,6 +35,9 @@ function captureInput() {
       case "6":
         showSignin();
         break;
+      case "7":
+        searchUser();
+        break;
       case "E":
         editProfile();
         break;
@@ -80,7 +83,7 @@ function renderHeader() {
       User: ${currentUser.fullName}  
       Plan: ${currentUser.plan}      
      _____________________________________________________________
-                                                          L- Logout`);
+                                                        L- Logout`);
   }
 }
 
@@ -164,6 +167,64 @@ function showMyProfile() {
   verifyProfile();
   saveUser(users);
 }
+
+// --------------- INTEGRANDO BUSCA DE USUÁRIO (ANDAMENTO) ------------ //
+function searchUser() {
+  currentPage = "SEARCH";
+  renderHeader();
+  console.log(`
+     ATENTION!
+      =====================================================\n  
+         Choose one of the options below to filter \n
+      =====================================================\n 
+     "name"\n
+     "birthdate"\n
+     "gender"\n
+     "adress"
+    `);
+  if (captureInput) {
+    dataSelect(searchName, searchBirthDate, searchGender, searchAdress);
+  }
+}
+function searchName() {
+  rl.question("Insert the name you need found: ", (name) => {
+    if (name) {
+      console.log(
+        users.filter((user) =>
+          user.fullName.toLowerCase().includes(name.toLocaleLowerCase()),
+        ),
+      );
+    }
+  });
+}
+function searchBirthDate() {
+  rl.question("Insert the date you need found: ", (birthdate) => {
+    if (birthDateValidation(birthdate)) {
+      users.filter((user) =>
+        user.birthDate.toLowerCase().includes(birthdate.toLocaleLowerCase()),
+      );
+    }
+  });
+}
+function searchGender() {
+  rl.question("Insert do you need found: ", (gender) => {
+    if (genderValidation(gender)) {
+      users.filter((user) =>
+        user.gender.toLowerCase().includes(gender.toLocaleLowerCase()),
+      );
+    }
+  });
+}
+function searchAdress() {
+  rl.question("Insert state you need found: ", (state) => {
+    if (stateValidation(state)) {
+      users.filter((user) =>
+        user.adress.toLowerCase().includes(state.toLocaleLowerCase()),
+      );
+    }
+  });
+}
+
 //          ****  DATA VALIDATION  ****
 function nameValidation(fullName) {
   if (!fullName || /\d/.test(fullName) || fullName.length < 8) {
@@ -319,7 +380,6 @@ function editName() {
 }
 //Editando data de nascimento
 function editBirthDate() {
-  console.log(" ");
   rl.question("Enter your Birth date:'ex.:(13/09/1991)'\n ", (birthDate) => {
     if (birthDateValidation(birthDate)) {
       currentUser.birthDate = birthDate;
@@ -362,7 +422,12 @@ function editProfile() {
      "gender"\n
      "adress"
     `);
-  rl.question(" Enter the data to be changed:  ", (data) => {
+  if (captureInput) {
+    dataSelect(editName, editBirthDate, editGender, editAdress);
+  }
+}
+function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
+  rl.question(" Choose an option:  ", (data) => {
     if (
       data !== "name" &&
       data !== "birthdate" &&
@@ -374,16 +439,16 @@ function editProfile() {
     } else {
       switch (data) {
         case "name":
-          editName();
+          firstCall();
           break;
         case "birthdate":
-          editBirthDate();
+          secondCall();
           break;
         case "gender":
-          editGender();
+          thirdCall();
           break;
         case "adress":
-          editAdress();
+          forthCall();
           break;
       }
       showMyProfile();
