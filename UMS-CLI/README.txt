@@ -8,7 +8,7 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 
 ## Versão Atual
 
-### v0.2
+### v0.3
 
 - Persistência com JSON
 - Cadastro de usuários
@@ -19,6 +19,21 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 - Verificação de perfil
 - Exclusão de usuários
 - Header dinâmico
+
+------------------------------------------
+✓ CRUD concluído
+✓ Persistência concluída
+✓ Header concluído
+✓ Search parcialmente concluída
+
+Pendências
+
+□ Busca por gênero
+□ Busca por endereço
+□ Permissões básicas
+□ README final
+□ Publicação LinkedIn
+
 
 ## Funcionalidades
 

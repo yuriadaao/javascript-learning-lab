@@ -1,14 +1,22 @@
 let user = [
-  { email: "yuriadao@email.com", password: "yuri123" },
-  { email: "victor@email.com", password: "victor123" },
-  { email: "italo@email.com", password: "italo123" },
+  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/1991" },
+  { email: "victor@email.com", password: "victor123", birthdate: "31/08/1991" },
+  { email: "italo@email.com", password: "italo123", birthdate: "10/02/1991" },
 ];
 
-function findUserByEmail(array, email) {
-  return array.filter((user) => email !== user.email);
+function findUserByEmail(array, date) {
+  return array.filter((user) => {
+    if (!user.birthdate) {
+      return;
+    } else {
+      let month = user.birthdate.split("/")[1];
+      console.log(month);
+      return month === date;
+    }
+  });
 }
 
-console.log(findUserByEmail(user, "yuriadao@email.com"));
+console.log(findUserByEmail(user, "01"));
 
 // console.log(user.find((array) => array.email === "yuriadao@email.com"));
 

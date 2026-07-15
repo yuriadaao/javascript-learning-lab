@@ -55,7 +55,7 @@ function captureInput() {
     }
   });
 }
-//                     FLOW'S PAGE
+// Aparence settings
 function renderHeader() {
   if (
     currentPage === "HOME" ||
@@ -86,6 +86,29 @@ function renderHeader() {
                                                         L- Logout`);
   }
 }
+function renderProfile(user) {
+  console.log(`
+        Nome:        ${user.fullName || "Unfinished"} \n  
+        Endereço:    ${user.adress || "Unfinished"} \n
+        Data Nasc.:  ${user.birthDate || "Unfinished"} \n
+        Gênero:      ${user.gender || "Unfinished"} \n
+        Email:       ${user.email || "Unfinished"}  \n\n
+        Plano:       ${user.plan || "Unfinished"} \n 
+      ____________________________________________________`);
+  return;
+}
+function renderFooter() {
+  if (currentPage !== "PROFILE") {
+    console.log(`
+    ___________________________________________________________     
+ \n                                                  0 - Exit `);
+  } else {
+    console.log(`
+    ___________________________________________________________    
+ \n E - Edit                 D - Delete              0 - Exit `);
+  }
+}
+//                     FLOW'S PAGE
 
 function showHome() {
   currentPage = "HOME";
@@ -94,10 +117,11 @@ function showHome() {
      Select do you need trought the numbers :
 
      2 - Login
-     3 - Sign in\n\n\n\n\n
-     0 - Exit`);
+     3 - Sign in\n\n\n
+     `);
 
   captureInput();
+  renderFooter();
 }
 
 function showLogin() {
@@ -107,11 +131,12 @@ function showLogin() {
   console.log(`    
 
      1 - Home
-     3 - Sign in\n\n\n\n\n
-     0 - Exit`);
+     3 - Sign in\n\n\n
+     `);
 
   login();
   captureInput();
+  renderFooter();
 }
 function showSignin() {
   currentPage = "SIGNIN";
@@ -124,6 +149,7 @@ function showSignin() {
 
   createUser();
   captureInput();
+  renderFooter();
 }
 
 function showDashBoard() {
@@ -140,9 +166,9 @@ function showDashBoard() {
       6- Ofter  
       7- Search Users
       8- Permitions 
-      9- Donations \n\n\n 
-      0 - Exit`);
+      9- Donations \n\n`);
 
+  renderFooter();
   captureInput();
 }
 function showMyProfile() {
@@ -153,19 +179,16 @@ function showMyProfile() {
     console.log(`   
         Complete your registration : \n`);
   }
-  console.log(`
-        Nome:        ${currentUser.fullName || "Unfinished"} \n  
-        Endereço:    ${currentUser.adress || "Unfinished"} \n
-        Data Nasc.:  ${currentUser.birthDate || "Unfinished"} \n
-        Gênero:      ${currentUser.gender || "Unfinished"} \n
-        Email:       ${currentUser.email || "Unfinished"}  \n\n
-        Plano:       ${currentUser.plan || "Unfinished"} \n `);
-  console.log(` 
- \n\n\n E - Edit       D - Delete          0 - Exit `);
-
+  renderProfile(currentUser);
+  renderFooter();
   captureInput();
   verifyProfile();
   saveUser(users);
+}
+
+function showResultSearch(data) {
+  currentPage = `Result Search by (${data})`;
+  renderHeader();
 }
 
 // --------------- INTEGRANDO BUSCA DE USUÁRIO (ANDAMENTO) ------------ //
@@ -182,29 +205,58 @@ function searchUser() {
      "gender"\n
      "adress"
     `);
+  renderFooter();
   if (captureInput) {
     dataSelect(searchName, searchBirthDate, searchGender, searchAdress);
   }
 }
 function searchName() {
+  let result;
+
   rl.question("Insert the name you need found: ", (name) => {
-    if (name) {
-      console.log(
-        users.filter((user) =>
-          user.fullName.toLowerCase().includes(name.toLocaleLowerCase()),
-        ),
+    if (!name || /\d/.test(name)) {
+      inputErr(name);
+      return;
+    } else {
+      result = users.filter((user) =>
+        user.fullName.toLowerCase().includes(name.toLocaleLowerCase()),
       );
+      showResultSearch(name);
+      result.map((user) => renderProfile(user));
+      renderTotal(result);
+      renderFooter();
+      captureInput();
     }
   });
 }
 function searchBirthDate() {
-  rl.question("Insert the date you need found: ", (birthdate) => {
-    if (birthDateValidation(birthdate)) {
-      users.filter((user) =>
-        user.birthDate.toLowerCase().includes(birthdate.toLocaleLowerCase()),
-      );
+  let result;
+  rl.question("Insert a month (01-12):  ", (month) => {
+    if (!month || !/\d/.test(month)) {
+      inputErr(month);
+      return;
     }
+    result = users.filter((user) => {
+      if (!user.birthDate) return;
+      else {
+        let userMonth = user.birthDate.split("/")[1];
+        return userMonth === month;
+      }
+    });
+
+    showResultSearch(month);
+    result.map((user) => renderProfile(user));
+    renderTotal(result);
+    renderFooter();
+    captureInput();
   });
+}
+
+function renderTotal(array) {
+  console.log(
+    `
+                                                   Total : ${array.length}`,
+  );
 }
 function searchGender() {
   rl.question("Insert do you need found: ", (gender) => {
@@ -451,7 +503,6 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
           forthCall();
           break;
       }
-      showMyProfile();
     }
   });
 }
@@ -517,22 +568,7 @@ function exitInput() {
     case "DASHBOARD":
       logout();
       break;
-    case "PROFILE":
-      showDashBoard();
-      break;
-    case "CREATEOFTER":
-      showDashBoard();
-      break;
-    case "OFTER":
-      showDashBoard();
-      break;
-    case "SEARCH":
-      showDashBoard();
-      break;
-    case "PERMITIONS":
-      showDashBoard();
-      break;
-    case "DONATIONS":
+    default:
       showDashBoard();
       break;
   }
