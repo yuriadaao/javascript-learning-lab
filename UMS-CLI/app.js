@@ -108,8 +108,16 @@ function renderFooter() {
  \n E - Edit                 D - Delete              0 - Exit `);
   }
 }
+function renderTotal(array) {
+  console.log(
+    `
+                                                   Total : ${array.length}`,
+  );
+}
+
 //                     FLOW'S PAGE
 
+//      Página Home
 function showHome() {
   currentPage = "HOME";
   renderHeader();
@@ -123,7 +131,7 @@ function showHome() {
   captureInput();
   renderFooter();
 }
-
+//      Página Login
 function showLogin() {
   currentPage = "LOGIN";
   renderHeader();
@@ -138,6 +146,8 @@ function showLogin() {
   captureInput();
   renderFooter();
 }
+
+//      Página Inscrição
 function showSignin() {
   currentPage = "SIGNIN";
   renderHeader();
@@ -151,7 +161,7 @@ function showSignin() {
   captureInput();
   renderFooter();
 }
-
+//      Página DashBoard
 function showDashBoard() {
   currentPage = "DASHBOARD";
   renderHeader();
@@ -171,6 +181,8 @@ function showDashBoard() {
   renderFooter();
   captureInput();
 }
+
+//      Página Perfil
 function showMyProfile() {
   currentPage = "PROFILE";
   verifyProfile(currentUser);
@@ -185,7 +197,7 @@ function showMyProfile() {
   verifyProfile();
   saveUser(users);
 }
-
+//      Página Mostrador de Resultados de Busca
 function showResultSearch(data) {
   currentPage = `Result Search by (${data})`;
   renderHeader();
@@ -207,9 +219,11 @@ function searchUser() {
     `);
   renderFooter();
   if (captureInput) {
-    dataSelect(searchName, searchBirthDate, searchGender, searchAdress);
+    dataSelect(searchName, searchMonth, searchGender, searchAdress);
   }
 }
+
+// Buscando por Nome
 function searchName() {
   let result;
 
@@ -229,7 +243,9 @@ function searchName() {
     }
   });
 }
-function searchBirthDate() {
+
+// Buscando por Mês de aniversário
+function searchMonth() {
   let result;
   rl.question("Insert a month (01-12):  ", (month) => {
     if (!month || !/\d/.test(month)) {
@@ -251,28 +267,39 @@ function searchBirthDate() {
     captureInput();
   });
 }
-
-function renderTotal(array) {
-  console.log(
-    `
-                                                   Total : ${array.length}`,
-  );
-}
+//Buscando por Genero
 function searchGender() {
-  rl.question("Insert do you need found: ", (gender) => {
+  let result;
+  rl.question("Insert witch gender do you need found: ", (gender) => {
     if (genderValidation(gender)) {
-      users.filter((user) =>
-        user.gender.toLowerCase().includes(gender.toLocaleLowerCase()),
-      );
+      gender = genderValidation(gender);
+      result = users.filter((user) => {
+        if (!user.gender) return;
+        else {
+          return user.gender === gender;
+        }
+      });
+      showResultSearch(gender);
+      result.map((user) => renderProfile(user));
+      renderTotal(result);
+      renderFooter();
+      captureInput();
     }
   });
 }
+//busca Através do Endereço
 function searchAdress() {
+  let result;
   rl.question("Insert state you need found: ", (state) => {
     if (stateValidation(state)) {
-      users.filter((user) =>
+      result = users.filter((user) =>
         user.adress.toLowerCase().includes(state.toLocaleLowerCase()),
       );
+      showResultSearch(state);
+      result.map((user) => renderProfile(user));
+      renderTotal(result);
+      renderFooter();
+      captureInput();
     }
   });
 }
@@ -283,14 +310,15 @@ function nameValidation(fullName) {
     inputErr(fullName);
     return false;
   }
-  return true;
+  return fullName;
 }
 function emailValidation(email) {
+  email = email.toLocaleLowerCase();
   if (!email || !/\./.test(email) || !/@/.test(email)) {
     inputErr(email);
     return false;
   }
-  return true;
+  return email;
 }
 function passwordValidation(password) {
   if (
@@ -303,21 +331,55 @@ function passwordValidation(password) {
     inputErr(password);
     return false;
   }
-  return true;
+  return password;
 }
 function birthDateValidation(birthDate) {
   if (!birthDate || !/\d{2}\/\d{2}\/\d{4}/.test(birthDate)) {
     inputErr(birthDate);
     return false;
   }
-  return true;
+  return birthDate;
 }
 function genderValidation(gender) {
+  gender = gender.toLocaleLowerCase();
   if (!gender || /\d/.test(gender) || gender.length < 4) {
     inputErr(gender);
     return false;
+  } else if (maleValidation(gender)) {
+    return (gender = "Homem Cisgênero");
+  } else if (femaleValidation(gender)) {
+    return (gender = "Mulher Cisgênero");
+  } else {
+    return (gender = "LGBTQIA+");
   }
-  return true;
+}
+function maleValidation(gender) {
+  if (
+    gender === "masculino" ||
+    gender === "macho" ||
+    gender === "male" ||
+    gender === "homem" ||
+    gender === "hombre" ||
+    gender === "man"
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+function femaleValidation(gender) {
+  if (
+    gender === "feminino" ||
+    gender === "femenino" ||
+    gender === "female" ||
+    gender === "mulher" ||
+    gender === "mujer" ||
+    gender === "woman"
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }
 function stateValidation(state) {
   if (!state || /\d/.test(state) || state.length < 4) {
@@ -396,6 +458,7 @@ function login() {
     showSignin();
   } else {
     rl.question("Please insert your email : ", (email) => {
+      email = email.toLocaleLowerCase();
       if (emailValidation(email)) {
         currentUser = findUserByEmail(users, email);
 
@@ -443,7 +506,7 @@ function editBirthDate() {
 function editGender() {
   rl.question("Enter your gender: \n", (gender) => {
     if (genderValidation(gender)) {
-      currentUser.gender = gender;
+      currentUser.gender = genderValidation(gender);
       showMyProfile();
     }
   });

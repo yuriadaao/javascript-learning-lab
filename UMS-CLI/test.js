@@ -62,3 +62,17 @@ console.log(findUserByEmail(user, "01"));
 // }
 
 // console.log(createVerify("yuriadao@email.com", user));
+
+function femaleValidation(gender) {
+  gender.toLocaleLowerCase();
+  if (
+    gender === "feminino" ||
+    gender === "femenino" ||
+    gender === "female" ||
+    gender === "mulher" ||
+    gender === "mujer" ||
+    gender === "woman"
+  ) {
+    return gender === "Mulher Cisgênero";
+  }
+}

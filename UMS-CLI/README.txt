@@ -11,29 +11,46 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 ### v0.3
 
 - Persistência com JSON
-- Cadastro de usuários
-- Login
-- Logout
+- CRUD completo de usuários
+- Login e Logout
 - Perfil de usuário
 - Edição de perfil
 - Verificação de perfil
 - Exclusão de usuários
+- Sistema de busca por:
+  - Nome
+  - Mês de aniversário
+  - Gênero
+  - Endereço
+- Sistema de navegação por páginas
+- Header dinâmico
+- Controle de sessão através de currentUser
+
+## Histórico de Versões
+
+### v0.1
+
+- Cadastro de usuários
+- Login
+- Persistência em JSON
+
+### v0.2
+
+- CRUD completo de usuários
+- Perfil de usuário
+- Edição de perfil
+- Exclusão de usuários
 - Header dinâmico
 
-------------------------------------------
-✓ CRUD concluído
-✓ Persistência concluída
-✓ Header concluído
-✓ Search parcialmente concluída
+### v0.3
 
-Pendências
-
-□ Busca por gênero
-□ Busca por endereço
-□ Permissões básicas
-□ README final
-□ Publicação LinkedIn
-
+- Sistema de busca e filtros
+- Busca por nome
+- Busca por gênero
+- Busca por endereço
+- Busca por mês de aniversário
+- Tela de resultados
+- Contagem de resultados encontrados
 
 ## Funcionalidades
 
@@ -44,6 +61,7 @@ Pendências
 - Edição de perfil
 - Verificação de integridade do perfil
 - Exclusão de usuários
+- Busca por usuários
 - Sistema de navegação por páginas
 - Header dinâmico com informações do usuário
 - Controle de sessão através de currentUser
@@ -93,3 +111,11 @@ Projeto desenvolvido para praticar:
 - Arquitetura de aplicações
 - Validações
 - Manipulação de arquivos
+
+## Próximas Implementações
+
+- Permissões básicas (Admin / Manager / User)
+- Controle de acesso às buscas
+- Refinamentos de interface
+- Documentação final
+- Publicação no LinkedIn
