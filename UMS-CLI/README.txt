@@ -8,7 +8,7 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 
 ## Versão Atual
 
-### v0.3
+### v0.4
 
 - Persistência com JSON
 - CRUD completo de usuários
@@ -22,6 +22,10 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
   - Mês de aniversário
   - Gênero
   - Endereço
+- Sistema de doações
+  - Realizar Doação
+  - Acessar Hístorico
+  - Última transação
 - Sistema de navegação por páginas
 - Header dinâmico
 - Controle de sessão através de currentUser
@@ -51,6 +55,13 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 - Busca por mês de aniversário
 - Tela de resultados
 - Contagem de resultados encontrados
+
+### v0.4
+- Implementação interface de Doação 
+- Doação valida somente multiplos de 10.
+- Lista de todas as doações (salva database & entrega em inferface)
+- Acessar e repetir última Transação
+- Implementação de Total de doações
 
 ## Funcionalidades
 

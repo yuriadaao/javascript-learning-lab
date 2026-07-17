@@ -10,7 +10,51 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+//    ********* CAPTURA DE ENTRADAS ********** (ANDAMENTO)
 
+// Donation input
+function donationInput() {
+  rl.question("Enter the option do you want : ", (answer) => {
+    switch (answer) {
+      case "0":
+        exitInput();
+        break;
+      case "1":
+        buyDonation();
+        break;
+      case "2":
+        listDonation();
+        break;
+      case "3":
+        lastDonation();
+        break;
+      default:
+        inputErr(answer);
+        break;
+    }
+  });
+}
+// Input Exit || Back
+function exitInput() {
+  switch (currentPage) {
+    case "HOME":
+      rl.close();
+      break;
+    case "LOGIN":
+      showHome();
+      break;
+    case "SIGNIN":
+      showHome();
+      break;
+    case "DASHBOARD":
+      logout();
+      break;
+    default:
+      showDashBoard();
+      break;
+  }
+}
+// Input Global
 function captureInput() {
   rl.question("", (answer) => {
     switch (answer) {
@@ -30,13 +74,19 @@ function captureInput() {
         showMyProfile();
         break;
       case "5":
-        showCreateOfter();
+        showOfter();
         break;
       case "6":
-        showSignin();
+        showDonations();
         break;
       case "7":
         searchUser();
+        break;
+      case "8":
+        createOfter();
+        break;
+      case "9":
+        permitions();
         break;
       case "E":
         editProfile();
@@ -172,11 +222,11 @@ function showDashBoard() {
 
   console.log(` 
       4- My Profile 
-      5- Create Ofter 
-      6- Ofter  
+      5- Ofter 
+      6- Donations  
       7- Search Users
-      8- Permitions 
-      9- Donations \n\n`);
+      8- Create Ofters 
+      9- Permitions \n\n`);
 
   renderFooter();
   captureInput();
@@ -197,13 +247,28 @@ function showMyProfile() {
   verifyProfile();
   saveUser(users);
 }
+// Página de Doações
+
+function showDonations() {
+  currentPage = "DONATIONS";
+  renderHeader();
+  console.log(`
+
+    1 - Choose a value to donation.
+    2 - List your donations.
+    3 - Repeat your last donation
+    `);
+  renderFooter();
+  donationInput();
+}
+
 //      Página Mostrador de Resultados de Busca
 function showResultSearch(data) {
   currentPage = `Result Search by (${data})`;
   renderHeader();
 }
 
-// --------------- INTEGRANDO BUSCA DE USUÁRIO (ANDAMENTO) ------------ //
+// --------------- INTEGRANDO BUSCA DE USUÁRIO  ------------ //
 function searchUser() {
   currentPage = "SEARCH";
   renderHeader();
@@ -476,6 +541,64 @@ function login() {
     });
   }
 }
+
+// IMPLEMENTAÇÃO DE DOAÇÃO  ( AJUSTE DE VALIDAção *10)
+function buyDonation() {
+  rl.question(
+    "Enter an amount multiple of 10 to donate : (10,00)  ",
+    (value) => {
+      if (!value || !/\d/.test(value) || value % 10 !== 0) {
+        inputErr(value);
+        return false;
+      } else {
+        rl.question(
+          `R$:${value} Cofirm this Value ? \n Y[yes]     N[no]`,
+          (answer) => {
+            if (!answer || answer !== "Y") inputErr(answer);
+            else {
+              currentUser.donations.push(value);
+              currentUser.lastDonation = saveUser(users);
+              console.log(
+                `The amount of R$${value} was successfully donated. Thank you! `,
+              );
+              renderFooter();
+              donationInput();
+            }
+          },
+        );
+      }
+    },
+  );
+}
+function listDonation() {
+  if (currentUser.donations.length === 0) {
+    console.log(`You don't have any donations yet.`);
+    renderFooter();
+    donationInput();
+  } else {
+    console.log(`
+     Lista de Doações: `);
+    for (i of currentUser.donations) {
+      console.log(`                       R$${Number(i).toFixed(2)}`);
+    }
+    renderFooter();
+    donationInput();
+  }
+}
+function lastDonation() {
+  let index = Number(currentUser.donations.length) - 1;
+  if (currentUser.donations.length === 0) {
+    console.log(`You dont have anything donation yet`);
+  } else {
+    console.log(
+      `Last amount donation was R$${Number(currentUser.donations[index]).toFixed(2)}\n`,
+    );
+    renderFooter();
+    donationInput();
+    return;
+  }
+}
+function totalDonation() {}
 // ENCONTRANDO USUÁRIO POR EMAIL
 function findUserByEmail(array, email) {
   const user = array.find((user) => user.email === email);
@@ -484,6 +607,9 @@ function findUserByEmail(array, email) {
   }
   return user;
 }
+
+//   *****************Editando Dados **************
+
 // Editando nome
 function editName() {
   rl.question("Enter your full name: \n", (fullName) => {
@@ -493,6 +619,7 @@ function editName() {
     }
   });
 }
+
 //Editando data de nascimento
 function editBirthDate() {
   rl.question("Enter your Birth date:'ex.:(13/09/1991)'\n ", (birthDate) => {
@@ -616,25 +743,6 @@ function inputErr(data) {
       
        1- Home           0- Exit  `);
   captureInput();
-}
-function exitInput() {
-  switch (currentPage) {
-    case "HOME":
-      rl.close();
-      break;
-    case "LOGIN":
-      showHome();
-      break;
-    case "SIGNIN":
-      showHome();
-      break;
-    case "DASHBOARD":
-      logout();
-      break;
-    default:
-      showDashBoard();
-      break;
-  }
 }
 
 showHome();
