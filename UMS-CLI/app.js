@@ -1,8 +1,10 @@
 const readline = require("readline");
 const fs = require("fs");
 const data = fs.readFileSync("database.json", "utf8");
-
+const offerDB = fs.readFileSync("offerDB.json", "utf-8");
+const currentDate = Date.now();
 let users = JSON.parse(data);
+let offers = JSON.parse(offerDB);
 let currentUser = null;
 let currentPage = null;
 
@@ -13,26 +15,73 @@ const rl = readline.createInterface({
 //    ********* CAPTURA DE ENTRADAS ********** (ANDAMENTO)
 
 // Donation input
-function donationInput() {
-  rl.question("Enter the option do you want : ", (answer) => {
-    switch (answer) {
-      case "0":
-        exitInput();
-        break;
-      case "1":
-        buyDonation();
-        break;
-      case "2":
-        listDonation();
-        break;
-      case "3":
-        lastDonation();
-        break;
-      default:
-        inputErr(answer);
-        break;
-    }
-  });
+// function donationInput() {
+//   rl.question("Enter the option do you want : ", (answer) => {
+//     switch (answer) {
+//       case "0":
+//         exitInput();
+//         break;
+//       case "1":
+//         buyDonation();
+//         break;
+//       case "2":
+//         listDonation();
+//         break;
+//       case "3":
+//         lastDonation();
+//         break;
+//       default:
+//         inputErr(answer);
+//         break;
+//     }
+//   });
+// }
+
+function oneActionInput() {
+  switch (currentPage) {
+    case "DONATIONS":
+      buyDonation();
+      break;
+    case "CREATE Offer":
+      createOffer();
+      break;
+    case "Offer":
+      break;
+    default:
+      logout();
+      break;
+  }
+}
+function twoActionInput() {
+  switch (currentPage) {
+    case "DONATIONS":
+      listDonation();
+      break;
+    case "CREATE Offer":
+      listOffer();
+      break;
+    case "Offer":
+      break;
+    default:
+      login();
+      break;
+  }
+}
+function threeActionInput() {
+  switch (currentPage) {
+    case "DONATIONS":
+      lastDonation();
+      break;
+    case "CREATE Offer":
+      createOffer();
+      break;
+    case "Offer":
+      favoriteOffer();
+      break;
+    default:
+      createUser();
+      break;
+  }
 }
 // Input Exit || Back
 function exitInput() {
@@ -54,6 +103,25 @@ function exitInput() {
       break;
   }
 }
+function categoryInput(category) {
+  switch (category) {
+    case "1":
+      return "BARCO";
+      break;
+    case "2":
+      return "BUGGY";
+      break;
+    case "3":
+      return "TRANSFER";
+      break;
+    case "4":
+      return "QUADRI";
+      break;
+    default:
+      inputErr(category);
+      return false;
+  }
+}
 // Input Global
 function captureInput() {
   rl.question("", (answer) => {
@@ -62,19 +130,19 @@ function captureInput() {
         exitInput();
         break;
       case "1":
-        logout();
+        oneActionInput();
         break;
       case "2":
-        showLogin();
+        twoActionInput();
         break;
       case "3":
-        showSignin();
+        threeActionInput();
         break;
       case "4":
         showMyProfile();
         break;
       case "5":
-        showOfter();
+        showOffer();
         break;
       case "6":
         showDonations();
@@ -83,10 +151,10 @@ function captureInput() {
         searchUser();
         break;
       case "8":
-        createOfter();
+        showCreateOffer();
         break;
       case "9":
-        permitions();
+        permissions();
         break;
       case "E":
         editProfile();
@@ -139,7 +207,7 @@ function renderHeader() {
 function renderProfile(user) {
   console.log(`
         Nome:        ${user.fullName || "Unfinished"} \n  
-        Endereço:    ${user.adress || "Unfinished"} \n
+        Endereço:    ${user.address || "Unfinished"} \n
         Data Nasc.:  ${user.birthDate || "Unfinished"} \n
         Gênero:      ${user.gender || "Unfinished"} \n
         Email:       ${user.email || "Unfinished"}  \n\n
@@ -156,6 +224,26 @@ function renderFooter() {
     console.log(`
     ___________________________________________________________    
  \n E - Edit                 D - Delete              0 - Exit `);
+  }
+}
+function renderOffer(array) {
+  if (currentPage === "MYOFFERS") {
+    console.log(`
+          Enteprise:   ${array.enterpise} \n  
+          Expiration:  ${array.expirationDate} \n
+          Descrip.:    ${array.description} \n\n
+          Value:       ${array.value} \n
+        
+        ___________________________________________________________
+         E - Edit                 D - Delete              0 - Exit \n`);
+  } else {
+    console.log(`
+          Enteprise:   ${array.enterpise} \n  
+          Expiration:  ${array.expirationDate} \n
+          Descrip.:    ${array.description} \n\n
+          Value:       ${array.value} \n
+        
+        ___________________________________________________________\n\n `);
   }
 }
 function renderTotal(array) {
@@ -222,11 +310,11 @@ function showDashBoard() {
 
   console.log(` 
       4- My Profile 
-      5- Ofter 
+      5- Offer 
       6- Donations  
       7- Search Users
-      8- Create Ofters 
-      9- Permitions \n\n`);
+      8- Create Offers 
+      9- Permissions \n\n`);
 
   renderFooter();
   captureInput();
@@ -253,13 +341,32 @@ function showDonations() {
   currentPage = "DONATIONS";
   renderHeader();
   console.log(`
+    Choose your option to continue :
 
     1 - Choose a value to donation.
     2 - List your donations.
     3 - Repeat your last donation
     `);
   renderFooter();
-  donationInput();
+  captureInput();
+}
+
+function showOffer() {
+  currentPage = "OFFERS";
+  renderHeader();
+  getActiveOffers(offers);
+  renderFooter();
+}
+
+function showCreateOffer() {
+  currentPage = "CREATE OFFER";
+  renderHeader();
+  console.log(`
+    1 - Create Offer.
+    2 - List Offer.
+    `);
+  renderFooter();
+  captureInput();
 }
 
 //      Página Mostrador de Resultados de Busca
@@ -280,11 +387,11 @@ function searchUser() {
      "name"\n
      "birthdate"\n
      "gender"\n
-     "adress"
+     "address"
     `);
   renderFooter();
   if (captureInput) {
-    dataSelect(searchName, searchMonth, searchGender, searchAdress);
+    dataSelect(searchName, searchMonth, searchGender, searchAddress);
   }
 }
 
@@ -353,12 +460,12 @@ function searchGender() {
   });
 }
 //busca Através do Endereço
-function searchAdress() {
+function searchAddress() {
   let result;
   rl.question("Insert state you need found: ", (state) => {
     if (stateValidation(state)) {
       result = users.filter((user) =>
-        user.adress.toLowerCase().includes(state.toLocaleLowerCase()),
+        user.address.toLowerCase().includes(state.toLocaleLowerCase()),
       );
       showResultSearch(state);
       result.map((user) => renderProfile(user));
@@ -368,10 +475,23 @@ function searchAdress() {
     }
   });
 }
+function getActiveOffers(array) {
+  if (array.length > 1) {
+    const active = array.expirationDate.filter((date) => {
+      const expirationDate = new Date(date);
+      if (expirationDate > currentDate) {
+        return true;
+      }
+    });
+  } else {
+  }
+
+  console.log(active);
+}
 
 //          ****  DATA VALIDATION  ****
 function nameValidation(fullName) {
-  if (!fullName || /\d/.test(fullName) || fullName.length < 8) {
+  if (!fullName || /\d/.test(fullName) || fullName.length < 6) {
     inputErr(fullName);
     return false;
   }
@@ -398,12 +518,12 @@ function passwordValidation(password) {
   }
   return password;
 }
-function birthDateValidation(birthDate) {
-  if (!birthDate || !/\d{2}\/\d{2}\/\d{4}/.test(birthDate)) {
-    inputErr(birthDate);
+function dateValidation(date) {
+  if (!date || !/\d{2}\/\d{2}\/\d{4}/.test(date)) {
+    inputErr(date);
     return false;
   }
-  return birthDate;
+  return date;
 }
 function genderValidation(gender) {
   gender = gender.toLocaleLowerCase();
@@ -460,6 +580,181 @@ function countryValidation(country) {
   }
   return true;
 }
+function descriptionValidation(description) {
+  if (!description || description.length < 70 || description.length > 420) {
+    inputErr("description");
+    return false;
+  }
+  return true;
+}
+function priceValidation(value) {
+  if (!value || !/\d/.test(value) || value % 10 !== 0) {
+    inputErr(value);
+    return false;
+  }
+  return true;
+}
+function createPrice(array) {
+  rl.question("Enter an amount multiple of 10 to your offer", (value) => {
+    if (priceValidation(value)) {
+      value = Number(value).toFixed(2);
+      array.value = value;
+      console.log(array);
+      offer.push(array);
+      saveOffer(offers);
+    }
+  });
+}
+function createDescription(array) {
+  rl.question(
+    "Enter a description for your offer. It must be between 90 and 400 characters long : ",
+    (description) => {
+      if (descriptionValidation(description)) {
+        array.description = description;
+        createPrice(array);
+      }
+    },
+  );
+}
+// ******** OBS - Aqui trabalhamos com Name validation para melhorar reutilização.
+function createEnterprise(array) {
+  rl.question("Insert a enterprise name: ", (enterpise) => {
+    if (nameValidation(enterpise)) {
+      array.enterpise = enterpise;
+      createDescription(array);
+    }
+  });
+}
+function createDateExpiration(array) {
+  rl.question("Insert a expiration date: ex.(xx/xx/xxx) ", (date) => {
+    if (dateValidation(date)) {
+      array.expirationDate = date;
+      createEnterprise(array);
+    }
+  });
+}
+
+function categoryValidation(array) {
+  if (
+    array.category.length > 1 &&
+    array.category.reduce((acc, current) => acc === current)
+  ) {
+    console.log("This category can't be registred");
+    inputErr("Category");
+    return false;
+  } else if (array.category.length > 4) {
+    console.log(
+      "You have exceeded the number of categories that can be registered.",
+    );
+    inputErr("Category");
+    return false;
+  }
+  return true;
+}
+function createCategory(array) {
+  rl.question(
+    `
+    Choose a category to add in your offer : 
+      1- Barco
+      2- Buggy
+      3- Transfer
+      4- Quadri  `,
+    (category) => {
+      addCategory(array, category);
+      rl.question(
+        ` Your offer can have 4 categories, would you like add another one ? Y[yes]   N[no] `,
+        (answer) => {
+          if (
+            answer.toLocaleLowerCase() !== "n" &&
+            answer.toLocaleLowerCase() !== "y"
+          ) {
+            inputErr(answer);
+          } else if (answer.toLocaleLowerCase() === "y") {
+            rl.question(
+              `
+    Choose a category to add in your offer : 
+      1- Barco
+      2- Buggy
+      3- Transfer
+      4- Quadri  `,
+              (category) => {
+                addCategory(array, category);
+                rl.question(
+                  ` Would you like add another one ? Y[yes]   N[no] `,
+                  (answer) => {
+                    if (
+                      answer.toLocaleLowerCase() !== "n" &&
+                      answer.toLocaleLowerCase() !== "y"
+                    ) {
+                      inputErr(answer);
+                    } else if (answer.toLocaleLowerCase() === "y") {
+                      rl.question(
+                        `
+                        Choose a category to add in your offer : 
+                          1- Barco
+                          2- Buggy
+                          3- Transfer
+                          4- Quadri  `,
+                        (category) => {
+                          addCategory(array, category);
+                          rl.question(
+                            ` Would you like add another one ? Y[yes]   N[no] `,
+                            (answer) => {
+                              if (
+                                answer.toLocaleLowerCase() !== "n" &&
+                                answer.toLocaleLowerCase() !== "y"
+                              ) {
+                                inputErr(answer);
+                              } else if (answer.toLocaleLowerCase() === "y") {
+                                rl.question(
+                                  `
+                                Choose a category to add in your offer : 
+                                  1- Barco
+                                  2- Buggy
+                                  3- Transfer
+                                  4- Quadri  `,
+                                  (category) => {
+                                    addCategory(array, category);
+                                    createDateExpiration(array);
+                                  },
+                                );
+                              }
+                              if (answer.toLocaleLowerCase() === "n") {
+                                if (categoryValidation(array)) {
+                                  createDateExpiration(array);
+                                }
+                              }
+                            },
+                          );
+                        },
+                      );
+                    }
+                    if (answer.toLocaleLowerCase() === "n") {
+                      if (categoryValidation(array)) {
+                        createDateExpiration(array);
+                      }
+                    }
+                  },
+                );
+              },
+            );
+          }
+          if (answer.toLocaleLowerCase() === "n") {
+            if (categoryValidation(array)) {
+              createDateExpiration(array);
+            }
+          }
+        },
+      );
+    },
+  );
+}
+
+function addCategory(array, category) {
+  if (categoryValidation(array) && categoryInput(category)) {
+    array.category.push(categoryInput(category));
+  }
+}
 
 //                   *****  FLOW FUNCTION SYSTEM  ****
 
@@ -481,7 +776,7 @@ function createUser() {
     fullName: null,
     birthDate: null,
     gender: null,
-    adress: null,
+    address: null,
     email: null,
     password: null,
     plan: "FREE",
@@ -547,10 +842,7 @@ function buyDonation() {
   rl.question(
     "Enter an amount multiple of 10 to donate : (10,00)  ",
     (value) => {
-      if (!value || !/\d/.test(value) || value % 10 !== 0) {
-        inputErr(value);
-        return false;
-      } else {
+      if (priceValidation(value)) {
         rl.question(
           `R$:${value} Cofirm this Value ? \n Y[yes]     N[no]`,
           (answer) => {
@@ -562,7 +854,7 @@ function buyDonation() {
                 `The amount of R$${value} was successfully donated. Thank you! `,
               );
               renderFooter();
-              donationInput();
+              captureInput();
             }
           },
         );
@@ -574,15 +866,18 @@ function listDonation() {
   if (currentUser.donations.length === 0) {
     console.log(`You don't have any donations yet.`);
     renderFooter();
-    donationInput();
+    captureInput();
   } else {
     console.log(`
      Lista de Doações: `);
     for (i of currentUser.donations) {
       console.log(`                       R$${Number(i).toFixed(2)}`);
+      console.log(
+        `                          ${Number(totalDonation()).toFixed(2)}`,
+      );
     }
     renderFooter();
-    donationInput();
+    captureInput();
   }
 }
 function lastDonation() {
@@ -594,11 +889,29 @@ function lastDonation() {
       `Last amount donation was R$${Number(currentUser.donations[index]).toFixed(2)}\n`,
     );
     renderFooter();
-    donationInput();
+    captureInput();
     return;
   }
 }
-function totalDonation() {}
+// ************* IMPLEMENTAR TOTAL !!
+function totalDonation() {
+  return currentUser.donations.reduce((value) => acc + current);
+}
+
+function createOffer() {
+  const newOffer = {
+    userID: currentUser.id,
+    category: [],
+    expirationDate: null,
+    enterpise: null,
+    description: null,
+    value: null,
+  };
+  createCategory(newOffer);
+}
+
+function listOffer() {}
+function favoriteOffer() {}
 // ENCONTRANDO USUÁRIO POR EMAIL
 function findUserByEmail(array, email) {
   const user = array.find((user) => user.email === email);
@@ -623,7 +936,7 @@ function editName() {
 //Editando data de nascimento
 function editBirthDate() {
   rl.question("Enter your Birth date:'ex.:(13/09/1991)'\n ", (birthDate) => {
-    if (birthDateValidation(birthDate)) {
+    if (dateValidation(birthDate)) {
       currentUser.birthDate = birthDate;
       showMyProfile();
     }
@@ -639,12 +952,12 @@ function editGender() {
   });
 }
 //Editando endereço
-function editAdress() {
+function editAddress() {
   rl.question("Enter your state: \n", (state) => {
     if (stateValidation(state)) {
       rl.question("Enter your country: ", (country) => {
         if (countryValidation(country)) {
-          currentUser.adress = `${state}, ${country}`;
+          currentUser.address = `${state}, ${country}`;
           showMyProfile();
         }
       });
@@ -662,10 +975,10 @@ function editProfile() {
      "name"\n
      "birthdate"\n
      "gender"\n
-     "adress"
+     "address"
     `);
   if (captureInput) {
-    dataSelect(editName, editBirthDate, editGender, editAdress);
+    dataSelect(editName, editBirthDate, editGender, editAddress);
   }
 }
 function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
@@ -674,7 +987,7 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
       data !== "name" &&
       data !== "birthdate" &&
       data !== "gender" &&
-      data !== "adress"
+      data !== "address"
     ) {
       inputErr(data);
       return;
@@ -689,7 +1002,7 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
         case "gender":
           thirdCall();
           break;
-        case "adress":
+        case "address":
           forthCall();
           break;
       }
@@ -720,7 +1033,7 @@ function verifyProfile() {
     !currentUser.fullName ||
     !currentUser.birthDate ||
     !currentUser.gender ||
-    !currentUser.adress
+    !currentUser.address
   ) {
     return (currentUser.fullProfile = false);
   } else {
@@ -728,6 +1041,9 @@ function verifyProfile() {
   }
 }
 //Salvando no Banco
+function saveOffer(array) {
+  fs.writeFileSync("offerDB.json", JSON.stringify(array));
+}
 function saveUser(array) {
   fs.writeFileSync("database.json", JSON.stringify(array));
 }
