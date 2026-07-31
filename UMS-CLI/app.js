@@ -218,12 +218,12 @@ function renderProfile(user) {
 function renderFooter() {
   if (currentPage !== "PROFILE") {
     console.log(`
-    ___________________________________________________________     
- \n                                                  0 - Exit `);
+    _______________________________________________________________     
+ \n                                                     0 - Exit `);
   } else {
     console.log(`
-    ___________________________________________________________    
- \n E - Edit                 D - Delete              0 - Exit `);
+    _______________________________________________________________    
+ \n E - Edit                   D - Delete               0 - Exit `);
   }
 }
 function renderOffer(array) {
@@ -232,18 +232,18 @@ function renderOffer(array) {
           Enteprise:   ${array.enterpise} \n  
           Expiration:  ${array.expirationDate} \n
           Descrip.:    ${array.description} \n\n
-          Value:       ${array.value} \n
+          Value:       R$${array.value} \n
         
-        ___________________________________________________________
-         E - Edit                 D - Delete              0 - Exit \n`);
+        ________________________________________________________
+         E - Edit               D - Delete             0 - Exit \n`);
   } else {
     console.log(`
           Enteprise:   ${array.enterpise} \n  
           Expiration:  ${array.expirationDate} \n
           Descrip.:    ${array.description} \n\n
-          Value:       ${array.value} \n
+          Value:       R$ ${array.value} \n
         
-        ___________________________________________________________\n\n `);
+        ________________________________________________________\n\n `);
   }
 }
 function renderTotal(array) {
@@ -354,7 +354,7 @@ function showDonations() {
 function showOffer() {
   currentPage = "OFFERS";
   renderHeader();
-  getActiveOffers(offers);
+  getActiveOffers(offers).map((users) => renderOffer(users));
   renderFooter();
 }
 
@@ -475,18 +475,17 @@ function searchAddress() {
     }
   });
 }
-function getActiveOffers(array) {
-  if (array.length > 1) {
-    const active = array.expirationDate.filter((date) => {
-      const expirationDate = new Date(date);
-      if (expirationDate > currentDate) {
-        return true;
-      }
-    });
-  } else {
-  }
 
-  console.log(active);
+// Conversão de string para data padrão
+function parseBrDate(date) {
+  const [day, month, year] = date.split("/");
+
+  return new Date(year, month - 1, day);
+}
+function getActiveOffers(array) {
+  return array.filter((user) => {
+    return parseBrDate(user.expirationDate).getTime() > currentDate;
+  });
 }
 
 //          ****  DATA VALIDATION  ****

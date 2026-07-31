@@ -1,22 +1,42 @@
 let user = [
-  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/1991" },
-  { email: "victor@email.com", password: "victor123", birthdate: "31/08/1991" },
-  { email: "italo@email.com", password: "italo123", birthdate: "10/02/1991" },
+  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/07/2027" },
+  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/2026" },
 ];
+const currentDate = Date.now();
+function parseBrDate(date) {
+  const [day, month, year] = date.split("/");
 
-function findUserByEmail(array, date) {
+  return new Date(year, month - 1, day);
+}
+function filterDate(array, entrada) {
+  let birthDate;
+
   return array.filter((user) => {
-    if (!user.birthdate) {
-      return;
-    } else {
-      let month = user.birthdate.split("/")[1];
-      console.log(month);
-      return month === date;
-    }
+    return parseBrDate(user.birthdate).getTime() > currentDate;
   });
 }
 
-console.log(findUserByEmail(user, "01"));
+// let user = [
+//   { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/1991" },
+//   { email: "victor@email.com", password: "victor123", birthdate: "31/08/1991" },
+//   { email: "italo@email.com", password: "italo123", birthdate: "10/02/1991" },
+// ];
+
+// function findUserByEmail(array, date) {
+//   return array.filter((user) => {
+//     if (!user.birthdate) {
+//       return;
+//     } else {
+//       let month = user.birthdate.split("/")[1];
+//       console.log(month);
+//       return month === date;
+//     }
+//   });
+// }
+console.log(currentDate);
+console.log(
+  filterDate(user, new Date("00/01/1991")).map((user) => user.birthdate),
+);
 
 // console.log(user.find((array) => array.email === "yuriadao@email.com"));
 
