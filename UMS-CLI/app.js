@@ -1,5 +1,6 @@
 const readline = require("readline");
 const fs = require("fs");
+const { count } = require("console");
 const data = fs.readFileSync("database.json", "utf8");
 const offerDB = fs.readFileSync("offerDB.json", "utf-8");
 const currentDate = Date.now();
@@ -42,10 +43,10 @@ function oneActionInput() {
     case "DONATIONS":
       buyDonation();
       break;
-    case "CREATE Offer":
+    case "CREATE OFFER":
       createOffer();
       break;
-    case "Offer":
+    case "OFFERS":
       break;
     default:
       logout();
@@ -174,6 +175,25 @@ function captureInput() {
   });
 }
 // Aparence settings
+function formatDescription(description) {
+  let lastSpace = 0;
+  let count = 0;
+  for (let i = 0; i <= description.length - 1; i++) {
+    count++;
+    if (description[i] === " " || description[i] === ".") {
+      lastSpace = i;
+    }
+    if (count === 50) {
+      count = 0;
+
+      description =
+        description.slice(0, lastSpace) +
+        "\n" +
+        description.slice(lastSpace, description.length);
+    }
+  }
+  return description;
+}
 function renderHeader() {
   if (
     currentPage === "HOME" ||
@@ -231,7 +251,7 @@ function renderOffer(array) {
     console.log(`
           Enteprise:   ${array.enterpise} \n  
           Expiration:  ${array.expirationDate} \n
-          Descrip.:    ${array.description} \n\n
+          Descrip.:    \n${formatDescription(array.description)} \n\n
           Value:       R$${array.value} \n
         
         ________________________________________________________
@@ -240,7 +260,7 @@ function renderOffer(array) {
     console.log(`
           Enteprise:   ${array.enterpise} \n  
           Expiration:  ${array.expirationDate} \n
-          Descrip.:    ${array.description} \n\n
+          Descrip.:    \n${formatDescription(array.description)} \n\n
           Value:       R$ ${array.value} \n
         
         ________________________________________________________\n\n `);
@@ -594,12 +614,12 @@ function priceValidation(value) {
   return true;
 }
 function createPrice(array) {
-  rl.question("Enter an amount multiple of 10 to your offer", (value) => {
+  rl.question("Enter an amount multiple of 10 to your offer: ", (value) => {
     if (priceValidation(value)) {
       value = Number(value).toFixed(2);
       array.value = value;
       console.log(array);
-      offer.push(array);
+      offers.push(array);
       saveOffer(offers);
     }
   });

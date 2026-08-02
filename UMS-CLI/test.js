@@ -1,20 +1,43 @@
-let user = [
-  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/07/2027" },
-  { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/2026" },
-];
-const currentDate = Date.now();
-function parseBrDate(date) {
-  const [day, month, year] = date.split("/");
+const desc = "Teste de quebra de linha automática após a contagem da iteração ";
 
-  return new Date(year, month - 1, day);
+function formatDescription(texto) {
+  let lastSpace = 0;
+  let count = 0;
+  for (let i = 0; i < texto.length - 1; i++) {
+    count++;
+    if (texto[i] === " ") {
+      lastSpace = i;
+      console.log("Achei um espaço");
+    }
+    if (count === 10) {
+      console.log("entrei");
+      count = 0;
+      texto =
+        texto.slice(0, lastSpace) + "\n" + texto.slice(lastSpace, texto.length);
+    }
+  }
+  return texto;
 }
-function filterDate(array, entrada) {
-  let birthDate;
 
-  return array.filter((user) => {
-    return parseBrDate(user.birthdate).getTime() > currentDate;
-  });
-}
+console.log(formatDescription(desc));
+
+// let user = [
+//   { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/07/2027" },
+//   { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/2026" },
+// ];
+// const currentDate = Date.now();
+// function parseBrDate(date) {
+//   const [day, month, year] = date.split("/");
+
+//   return new Date(year, month - 1, day);
+// }
+// function filterDate(array, entrada) {
+//   let birthDate;
+
+//   return array.filter((user) => {
+//     return parseBrDate(user.birthdate).getTime() > currentDate;
+//   });
+// }
 
 // let user = [
 //   { email: "yuriadao@email.com", password: "yuri123", birthdate: "31/01/1991" },
@@ -33,10 +56,10 @@ function filterDate(array, entrada) {
 //     }
 //   });
 // }
-console.log(currentDate);
-console.log(
-  filterDate(user, new Date("00/01/1991")).map((user) => user.birthdate),
-);
+// console.log(currentDate);
+// console.log(
+//   filterDate(user, new Date("00/01/1991")).map((user) => user.birthdate),
+// );
 
 // console.log(user.find((array) => array.email === "yuriadao@email.com"));
 
@@ -83,16 +106,16 @@ console.log(
 
 // console.log(createVerify("yuriadao@email.com", user));
 
-function femaleValidation(gender) {
-  gender.toLocaleLowerCase();
-  if (
-    gender === "feminino" ||
-    gender === "femenino" ||
-    gender === "female" ||
-    gender === "mulher" ||
-    gender === "mujer" ||
-    gender === "woman"
-  ) {
-    return gender === "Mulher Cisgênero";
-  }
-}
+// function femaleValidation(gender) {
+//   gender.toLocaleLowerCase();
+//   if (
+//     gender === "feminino" ||
+//     gender === "femenino" ||
+//     gender === "female" ||
+//     gender === "mulher" ||
+//     gender === "mujer" ||
+//     gender === "woman"
+//   ) {
+//     return gender === "Mulher Cisgênero";
+//   }
+// }
