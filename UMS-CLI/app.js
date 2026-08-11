@@ -58,10 +58,10 @@ function twoActionInput() {
     case "DONATIONS":
       listDonation();
       break;
-    case "CREATE Offer":
+    case "CREATE OFFER":
       listOffer();
       break;
-    case "Offer":
+    case "OFFERS":
       break;
     default:
       login();
@@ -98,6 +98,12 @@ function exitInput() {
       break;
     case "DASHBOARD":
       logout();
+      break;
+    case "DONATIONS":
+      showDonations();
+      break;
+    case "CREATE OFFERS":
+      createOffer();
       break;
     default:
       showDashBoard();
@@ -376,6 +382,7 @@ function showOffer() {
   renderHeader();
   getActiveOffers(offers).map((users) => renderOffer(users));
   renderFooter();
+  captureInput();
 }
 
 function showCreateOffer() {
@@ -618,9 +625,10 @@ function createPrice(array) {
     if (priceValidation(value)) {
       value = Number(value).toFixed(2);
       array.value = value;
-      console.log(array);
+      console.log("Your Offer was created sucessfull");
       offers.push(array);
       saveOffer(offers);
+      showCreateOffer();
     }
   });
 }
@@ -865,7 +873,8 @@ function buyDonation() {
         rl.question(
           `R$:${value} Cofirm this Value ? \n Y[yes]     N[no]`,
           (answer) => {
-            if (!answer || answer !== "Y") inputErr(answer);
+            answer.toLocaleLowerCase();
+            if (!answer || answer !== "y") inputErr(answer);
             else {
               currentUser.donations.push(value);
               currentUser.lastDonation = saveUser(users);
@@ -888,33 +897,57 @@ function listDonation() {
     captureInput();
   } else {
     console.log(`
-     Lista de Doações: `);
+     Donation's list : `);
     for (i of currentUser.donations) {
-      console.log(`                       R$${Number(i).toFixed(2)}`);
-      console.log(
-        `                          ${Number(totalDonation()).toFixed(2)}`,
-      );
+      console.log(`                       R$${Number(i).toFixed(2)}\n`);
     }
+    console.log(
+      `                          ${Number(totalDonation()).toFixed(2)}`,
+    );
     renderFooter();
     captureInput();
   }
 }
 function lastDonation() {
   let index = Number(currentUser.donations.length) - 1;
+
   if (currentUser.donations.length === 0) {
     console.log(`You dont have anything donation yet`);
+    captureInput();
   } else {
-    console.log(
-      `Last amount donation was R$${Number(currentUser.donations[index]).toFixed(2)}\n`,
+    const lastDonation = Number(currentUser.donations[index]).toFixed(2);
+    console.log(`
+      Your last amount donation was R$${lastDonation}\n`);
+    rl.question(
+      "     Would you like repeat your last Donation ?  Y[yes]    N[no]",
+      (answer) => {
+        answer = answer.toLocaleLowerCase();
+        if (answer && answer === "y") {
+          currentUser.donations.push(lastDonation);
+          console.log("Thank's for your contribuition");
+          saveUser(users);
+          showDonations();
+        } else if (answer && answer === "n") {
+          showDonations();
+        } else {
+          inputErr("Key");
+        }
+      },
     );
     renderFooter();
-    captureInput();
-    return;
   }
 }
 // ************* IMPLEMENTAR TOTAL !!
 function totalDonation() {
-  return currentUser.donations.reduce((value) => acc + current);
+  if (currentUser.donations.length > 1) {
+    return currentUser.donations.reduce(
+      (acc, current) => Number(acc) + Number(current),
+    );
+  } else if ((currentUser.donations = 1)) {
+    return currentUser.donations;
+  } else {
+    return "0,00";
+  }
 }
 
 function createOffer() {
@@ -929,7 +962,20 @@ function createOffer() {
   createCategory(newOffer);
 }
 
-function listOffer() {}
+function listOffer() {
+  currentPage = "MYOFFERS";
+  let listOffer = offers.filter((offer) => offer.userID === currentUser.id);
+
+  if (listOffer.length < 1) {
+    console.log("You don't have yet anyone offer");
+    showCreateOffer();
+  } else {
+    listOffer.map((offer) => renderOffer(offer));
+    renderFooter();
+    captureInput();
+  }
+  return listOffer;
+}
 function favoriteOffer() {}
 // ENCONTRANDO USUÁRIO POR EMAIL
 function findUserByEmail(array, email) {
