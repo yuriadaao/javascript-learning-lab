@@ -8,7 +8,7 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 
 ## Versão Atual
 
-### v0.4
+### v0.5
 
 - Persistência com JSON
 - CRUD completo de usuários
@@ -29,6 +29,13 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 - Sistema de navegação por páginas
 - Header dinâmico
 - Controle de sessão através de currentUser
+- Implementação e Validação de Ofertas.
+ - Página de Criação de ofertas para empresa(Manager).
+ - Página de listagem de ofertas para user(User).
+ - Sistema de lista de todas ofertas de uma empresa(Manager).
+ - Seleção de oferta (Manager/ User).
+ - Sistema de Edição e Exclusão de Oferta(Manager)
+ - Sistema de Favoritos(User)
 
 ## Histórico de Versões
 
@@ -63,6 +70,16 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 - Acessar e repetir última Transação
 - Implementação de Total de doações
 
+### v0.5
+- Implementação e Validação de Ofertas.
+- Página de Criação de ofertas para empresa(Manager).
+- Página de listagem de ofertas para user(User).
+- Sistema de lista de todas ofertas de uma empresa(Manager).
+- Seleção de oferta (Manager/ User).
+- Sistema de Edição e Exclusão de Oferta(Manager)
+- Sistema de Favoritos(User)
+
+
 ## Funcionalidades
 
 - Cadastro de usuários
@@ -76,6 +93,12 @@ User Management System desenvolvido em Node.js utilizando interface CLI.
 - Sistema de navegação por páginas
 - Header dinâmico com informações do usuário
 - Controle de sessão através de currentUser
+- Sistema de doação por multiplos de 10(dez)
+- Conferência de Doação e Listagem de transações
+- Funcionalidade de repetir ultima transação
+- Criação de Ofertas
+- Lista de Ofertas (User)
+- Edição ou Exclusão de Ofertas (Manager) 
 
 ## Estrutura do Usuário
 
