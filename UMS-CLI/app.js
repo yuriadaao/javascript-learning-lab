@@ -59,7 +59,7 @@ function twoActionInput() {
       listDonation();
       break;
     case "CREATE OFFER":
-      listOffer();
+      showListOffer();
       break;
     case "OFFERS":
       break;
@@ -128,6 +128,57 @@ function categoryInput(category) {
       inputErr(category);
       return false;
   }
+}
+// Input Offer Select
+function selectOffer() {
+  rl.question("", (answer) => {
+    switch (answer) {
+      case "0":
+        exitInput();
+        break;
+      case "1":
+        oneActionInput();
+        break;
+      case "2":
+        twoActionInput();
+        break;
+      case "3":
+        threeActionInput();
+        break;
+      case "4":
+        showMyProfile();
+        break;
+      case "5":
+        showOffer();
+        break;
+      case "6":
+        showDonations();
+        break;
+      case "7":
+        searchUser();
+        break;
+      case "8":
+        showCreateOffer();
+        break;
+      case "9":
+        permissions();
+        break;
+      case "E":
+        editProfile();
+        break;
+      case "D":
+        deleteUser();
+        break;
+      case "L":
+        logout();
+        break;
+      default:
+        console.log(`Invalid command.
+        0 - Exit.`);
+        exitInput();
+        break;
+    }
+  });
 }
 // Input Global
 function captureInput() {
@@ -253,25 +304,17 @@ function renderFooter() {
   }
 }
 function renderOffer(array) {
-  if (currentPage === "MYOFFERS") {
-    console.log(`
-          Enteprise:   ${array.enterpise} \n  
-          Expiration:  ${array.expirationDate} \n
-          Descrip.:    \n${formatDescription(array.description)} \n\n
-          Value:       R$${array.value} \n
-        
-        ________________________________________________________
-         E - Edit               D - Delete             0 - Exit \n`);
-  } else {
-    console.log(`
+  console.log(`
+          ID:   ${array.offerID} \n  
           Enteprise:   ${array.enterpise} \n  
           Expiration:  ${array.expirationDate} \n
           Descrip.:    \n${formatDescription(array.description)} \n\n
           Value:       R$ ${array.value} \n
         
-        ________________________________________________________\n\n `);
-  }
+        ________________________________________________________\n\n 
+        `);
 }
+
 function renderTotal(array) {
   console.log(
     `
@@ -380,7 +423,7 @@ function showDonations() {
 function showOffer() {
   currentPage = "OFFERS";
   renderHeader();
-  getActiveOffers(offers).map((users) => renderOffer(users));
+  getActiveOffers(offers).map((offer) => renderOffer(offer));
   renderFooter();
   captureInput();
 }
@@ -394,6 +437,25 @@ function showCreateOffer() {
     `);
   renderFooter();
   captureInput();
+}
+function showListOffer() {
+  currentPage = "LIST OFFER";
+  renderHeader();
+  listOffer();
+  rl.question("To select any offer select your offerID: ", (id) => {
+    if (id === "0") {
+      showCreateOffer();
+    } else if (!id || !/\d/.test(id)) {
+      inputErr(id);
+    } else {
+      return renderOffer(selectOffer(id));
+    }
+  });
+  renderFooter();
+}
+
+function selectOffer(id) {
+  return offers.find((offer) => offer.offerID === Number(id));
 }
 
 //      Página Mostrador de Resultados de Busca
@@ -953,6 +1015,7 @@ function totalDonation() {
 function createOffer() {
   const newOffer = {
     userID: currentUser.id,
+    offerID: createID(offers),
     category: [],
     expirationDate: null,
     enterpise: null,
@@ -963,7 +1026,6 @@ function createOffer() {
 }
 
 function listOffer() {
-  currentPage = "MYOFFERS";
   let listOffer = offers.filter((offer) => offer.userID === currentUser.id);
 
   if (listOffer.length < 1) {
@@ -971,8 +1033,6 @@ function listOffer() {
     showCreateOffer();
   } else {
     listOffer.map((offer) => renderOffer(offer));
-    renderFooter();
-    captureInput();
   }
   return listOffer;
 }
@@ -1117,6 +1177,8 @@ function logout() {
   currentUser = null;
   showHome();
 }
+//Gerenciamento de permissões
+function checkPermissions() {}
 //*********     INPUT SETTINGS    *********
 function inputErr(data) {
   console.log(`
