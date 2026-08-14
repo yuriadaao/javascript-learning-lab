@@ -129,57 +129,7 @@ function categoryInput(category) {
       return false;
   }
 }
-// Input Offer Select
-function selectOffer() {
-  rl.question("", (answer) => {
-    switch (answer) {
-      case "0":
-        exitInput();
-        break;
-      case "1":
-        oneActionInput();
-        break;
-      case "2":
-        twoActionInput();
-        break;
-      case "3":
-        threeActionInput();
-        break;
-      case "4":
-        showMyProfile();
-        break;
-      case "5":
-        showOffer();
-        break;
-      case "6":
-        showDonations();
-        break;
-      case "7":
-        searchUser();
-        break;
-      case "8":
-        showCreateOffer();
-        break;
-      case "9":
-        permissions();
-        break;
-      case "E":
-        editProfile();
-        break;
-      case "D":
-        deleteUser();
-        break;
-      case "L":
-        logout();
-        break;
-      default:
-        console.log(`Invalid command.
-        0 - Exit.`);
-        exitInput();
-        break;
-    }
-  });
-}
+
 // Input Global
 function captureInput() {
   rl.question("", (answer) => {
@@ -424,8 +374,16 @@ function showOffer() {
   currentPage = "OFFERS";
   renderHeader();
   getActiveOffers(offers).map((offer) => renderOffer(offer));
+  rl.question("   To select any offer select your offerID: ", (id) => {
+    if (id === "0") {
+      showDashBoard();
+    } else if (!id || !/\d/.test(id)) {
+      inputErr(id);
+    } else {
+      return renderOffer(selectOffer(id));
+    }
+  });
   renderFooter();
-  captureInput();
 }
 
 function showCreateOffer() {
@@ -442,7 +400,7 @@ function showListOffer() {
   currentPage = "LIST OFFER";
   renderHeader();
   listOffer();
-  rl.question("To select any offer select your offerID: ", (id) => {
+  rl.question("   To select any offer select your offerID: ", (id) => {
     if (id === "0") {
       showCreateOffer();
     } else if (!id || !/\d/.test(id)) {
