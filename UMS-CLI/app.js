@@ -1,11 +1,11 @@
 const readline = require("readline");
 const fs = require("fs");
 const { count } = require("console");
-const data = fs.readFileSync("database.json", "utf8");
-const offerDB = fs.readFileSync("offerDB.json", "utf-8");
+const usersDB = fs.readFileSync("usersDB.json", "utf8");
+const offersDB = fs.readFileSync("offersDB.json", "utf-8");
 const currentDate = Date.now();
-let users = JSON.parse(data);
-let offers = JSON.parse(offerDB);
+let users = JSON.parse(usersDB);
+let offers = JSON.parse(offersDB);
 let currentUser = null;
 let currentPage = null;
 
@@ -168,7 +168,7 @@ function captureInput() {
         editProfile();
         break;
       case "D":
-        deleteUser();
+        currentDelete();
         break;
       case "L":
         logout();
@@ -180,6 +180,13 @@ function captureInput() {
         break;
     }
   });
+}
+function currentDelete() {
+  if (currentPage === "PROFILE") {
+    $delete(users, "usersDB.json");
+  } else {
+    $delete(offers, "offersDB.json");
+  }
 }
 // Aparence settings
 function formatDescription(description) {
@@ -256,7 +263,7 @@ function renderFooter() {
 function renderOffer(array) {
   console.log(`
           ID:   ${array.offerID} \n  
-          Enteprise:   ${array.enterpise} \n  
+          Enteprise:   ${array.enterprise} \n  
           Expiration:  ${array.expirationDate} \n
           Descrip.:    \n${formatDescription(array.description)} \n\n
           Value:       R$ ${array.value} \n
@@ -352,7 +359,7 @@ function showMyProfile() {
   renderFooter();
   captureInput();
   verifyProfile();
-  saveUser(users);
+  save(users, "usersDB.json");
 }
 // Página de Doações
 
@@ -536,6 +543,15 @@ function getActiveOffers(array) {
 }
 
 //          ****  DATA VALIDATION  ****
+
+function enterpriseNameValidation(enterprise) {
+  if (!enterprise || !/[a-zA-Z]/.test(enterprise) || enterprise.length < 4) {
+    inputErr(enterprise);
+    captureInput();
+  } else {
+    return enterprise;
+  }
+}
 function nameValidation(fullName) {
   if (!fullName || /\d/.test(fullName) || fullName.length < 6) {
     inputErr(fullName);
@@ -647,7 +663,7 @@ function createPrice(array) {
       array.value = value;
       console.log("Your Offer was created sucessfull");
       offers.push(array);
-      saveOffer(offers);
+      save(offers, "offersDB.json");
       showCreateOffer();
     }
   });
@@ -663,11 +679,11 @@ function createDescription(array) {
     },
   );
 }
-// ******** OBS - Aqui trabalhamos com Name validation para melhorar reutilização.
+
 function createEnterprise(array) {
-  rl.question("Insert a enterprise name: ", (enterpise) => {
-    if (nameValidation(enterpise)) {
-      array.enterpise = enterpise;
+  rl.question("Insert a enterprise name: ", (enterprise) => {
+    if (enterpriseNameValidation(enterprise)) {
+      array.enterprise = enterprise;
       createDescription(array);
     }
   });
@@ -847,7 +863,7 @@ function createUser() {
                 newUser.password = password;
                 currentUser = newUser;
                 users.push(currentUser);
-                saveUser(users);
+                save(users, "usersDB.json");
                 showDashBoard();
               });
             }
@@ -897,7 +913,7 @@ function buyDonation() {
             if (!answer || answer !== "y") inputErr(answer);
             else {
               currentUser.donations.push(value);
-              currentUser.lastDonation = saveUser(users);
+              currentUser.lastDonation = save(users, "usersDB.json");
               console.log(
                 `The amount of R$${value} was successfully donated. Thank you! `,
               );
@@ -945,7 +961,7 @@ function lastDonation() {
         if (answer && answer === "y") {
           currentUser.donations.push(lastDonation);
           console.log("Thank's for your contribuition");
-          saveUser(users);
+          save(users, "usersDB.json");
           showDonations();
         } else if (answer && answer === "n") {
           showDonations();
@@ -976,7 +992,7 @@ function createOffer() {
     offerID: createID(offers),
     category: [],
     expirationDate: null,
-    enterpise: null,
+    enterprise: null,
     description: null,
     value: null,
   };
@@ -1047,7 +1063,23 @@ function editAddress() {
     }
   });
 }
-// Fluxo de Edição de perfil
+// Fluxo de Edição
+function editMyOffers() {
+  console.log(`
+  ATENTION!
+  =====================================================\n  
+  Only the following options can be changed. 
+  Choose one of them:\n
+  =====================================================\n 
+     "name"\n
+     "birthdate"\n
+     "gender"\n
+     "address"
+    `);
+  if (captureInput) {
+    dataSelect(editName, editBirthDate, editGender, editAddress);
+  }
+}
 function editProfile() {
   console.log(`
   ATENTION!
@@ -1093,19 +1125,22 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
   });
 }
 // Deletando Usuário ( Atualmente possuí Bug de replicação quando o banco é zerado)
-function deleteUser() {
+function $delete(array, database) {
   console.log(`Press "Y" to confirm`);
   rl.question("Do you really want to delete this? ", (answer) => {
-    if (answer !== "Y") {
+    answer.toLocaleLowerCase();
+    if (answer !== "y") {
       inputErr(answer);
-    } else if (answer === "Y" && users.length <= 1) {
-      users = [];
-      saveUser(users);
+    } else if (answer === "0") {
+      showMyProfile();
+    } else if (answer === "y" && array.length <= 1) {
+      array = [];
+      save(array, database);
       logout();
     } else {
-      const usersUpdate = users.filter((user) => user.id !== currentUser.id);
-      users = usersUpdate;
-      saveUser(users);
+      const usersUpdate = array.filter((user) => user.id !== currentUser.id);
+      array = usersUpdate;
+      save(array, database);
       logout();
     }
   });
@@ -1124,12 +1159,10 @@ function verifyProfile() {
   }
 }
 //Salvando no Banco
-function saveOffer(array) {
-  fs.writeFileSync("offerDB.json", JSON.stringify(array));
+function save(array, database) {
+  fs.writeFileSync(database, JSON.stringify(array));
 }
-function saveUser(array) {
-  fs.writeFileSync("database.json", JSON.stringify(array));
-}
+
 //Saindo do Usuário
 function logout() {
   currentUser = null;
