@@ -7,6 +7,7 @@ const currentDate = Date.now();
 let users = JSON.parse(usersDB);
 let offers = JSON.parse(offersDB);
 let currentUser = null;
+let currentOffer = null;
 let currentPage = null;
 
 const rl = readline.createInterface({
@@ -100,7 +101,7 @@ function exitInput() {
       logout();
       break;
     case "DONATIONS":
-      showDonations();
+      showDashBoard();
       break;
     case "CREATE OFFERS":
       createOffer();
@@ -165,7 +166,7 @@ function captureInput() {
         permissions();
         break;
       case "E":
-        editProfile();
+        currentEdit();
         break;
       case "D":
         currentDelete();
@@ -181,11 +182,19 @@ function captureInput() {
     }
   });
 }
+
+function currentEdit() {
+  if (currentPage === "PROFILE") {
+    editProfile();
+  } else {
+    editMyOffers();
+  }
+}
 function currentDelete() {
   if (currentPage === "PROFILE") {
-    $delete(users, "usersDB.json");
+    deleteUser();
   } else {
-    $delete(offers, "offersDB.json");
+    deleteOffer();
   }
 }
 // Aparence settings
@@ -250,14 +259,14 @@ function renderProfile(user) {
   return;
 }
 function renderFooter() {
-  if (currentPage !== "PROFILE") {
+  if (currentPage === "PROFILE" || currentPage === "SELECT OFFER") {
     console.log(`
-    _______________________________________________________________     
- \n                                                     0 - Exit `);
+      _______________________________________________________________    
+     \n E - Edit                   D - Delete               0 - Exit `);
   } else {
     console.log(`
     _______________________________________________________________    
- \n E - Edit                   D - Delete               0 - Exit `);
+ \n                                                      0 - Exit `);
   }
 }
 function renderOffer(array) {
@@ -381,15 +390,20 @@ function showOffer() {
   currentPage = "OFFERS";
   renderHeader();
   getActiveOffers(offers).map((offer) => renderOffer(offer));
-  rl.question("   To select any offer select your offerID: ", (id) => {
-    if (id === "0") {
-      showDashBoard();
-    } else if (!id || !/\d/.test(id)) {
-      inputErr(id);
-    } else {
-      return renderOffer(selectOffer(id));
-    }
-  });
+  if (offers.length < 1) {
+    console.log("   No offers were found...");
+    captureInput();
+  } else {
+    rl.question("   To select any offer select your offerID: ", (id) => {
+      if (id === "0") {
+        showDashBoard();
+      } else if (!id || !/\d/.test(id)) {
+        inputErr(id);
+      } else {
+        return renderOffer(selectOffer(id));
+      }
+    });
+  }
   renderFooter();
 }
 
@@ -413,7 +427,7 @@ function showListOffer() {
     } else if (!id || !/\d/.test(id)) {
       inputErr(id);
     } else {
-      return renderOffer(selectOffer(id));
+      showSelectOffer(id);
     }
   });
   renderFooter();
@@ -421,6 +435,14 @@ function showListOffer() {
 
 function selectOffer(id) {
   return offers.find((offer) => offer.offerID === Number(id));
+}
+function showSelectOffer(id) {
+  currentPage = "SELECT OFFER";
+  renderHeader();
+  renderOffer(selectOffer(id));
+  currentOffer = selectOffer(id);
+  renderFooter();
+  captureInput();
 }
 
 //      Página Mostrador de Resultados de Busca
@@ -1063,6 +1085,30 @@ function editAddress() {
     }
   });
 }
+function editDescription() {
+  rl.question(
+    "Enter a description for your offer. It must be between 90 and 400 characters long : ",
+    (description) => {
+      if (descriptionValidation(description)) {
+        currentOffer.description = description;
+        save(offers, "offersDB.json");
+        currentOffer = null;
+        showListOffer();
+      }
+    },
+  );
+}
+function editValue() {
+  rl.question("Enter an amount multiple of 10 to your offer: ", (value) => {
+    if (priceValidation(value)) {
+      value = Number(value).toFixed(2);
+      currentOffer.value = value;
+      save(offers, "offersDB.json");
+      showListOffer();
+    }
+  });
+}
+
 // Fluxo de Edição
 function editMyOffers() {
   console.log(`
@@ -1071,13 +1117,11 @@ function editMyOffers() {
   Only the following options can be changed. 
   Choose one of them:\n
   =====================================================\n 
-     "name"\n
-     "birthdate"\n
-     "gender"\n
-     "address"
+     "description"\n
+     "value"\n
     `);
   if (captureInput) {
-    dataSelect(editName, editBirthDate, editGender, editAddress);
+    dataSelect(editDescription, editValue);
   }
 }
 function editProfile() {
@@ -1099,6 +1143,7 @@ function editProfile() {
 function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
   rl.question(" Choose an option:  ", (data) => {
     if (
+      currentPage === "PROFILE" &&
       data !== "name" &&
       data !== "birthdate" &&
       data !== "gender" &&
@@ -1106,7 +1151,7 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
     ) {
       inputErr(data);
       return;
-    } else {
+    } else if (currentPage === "PROFILE") {
       switch (data) {
         case "name":
           firstCall();
@@ -1121,27 +1166,73 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
           forthCall();
           break;
       }
+    } else if (
+      currentPage === "PROFILE" &&
+      data !== "name" &&
+      data !== "birthdate" &&
+      data !== "gender" &&
+      data !== "address"
+    ) {
+      inputErr(data);
+      return;
+    } else if (currentPage === "SELECT OFFER") {
+      switch (data) {
+        case "description":
+          editDescription();
+          break;
+        case "value":
+          editValue();
+          break;
+        default:
+          showDashBoard();
+          break;
+      }
     }
   });
 }
 // Deletando Usuário ( Atualmente possuí Bug de replicação quando o banco é zerado)
-function $delete(array, database) {
+function deleteUser() {
   console.log(`Press "Y" to confirm`);
   rl.question("Do you really want to delete this? ", (answer) => {
-    answer.toLocaleLowerCase();
+    answer = answer.toLocaleLowerCase();
     if (answer !== "y") {
       inputErr(answer);
     } else if (answer === "0") {
       showMyProfile();
-    } else if (answer === "y" && array.length <= 1) {
-      array = [];
-      save(array, database);
+    } else if (answer === "y" && array.length === 1) {
+      users = [];
+      save(users, "usersDB.json");
       logout();
     } else {
-      const usersUpdate = array.filter((user) => user.id !== currentUser.id);
-      array = usersUpdate;
-      save(array, database);
+      const usersUpdate = users.filter((user) => user.id !== currentUser.id);
+      users = usersUpdate;
+      save(users, "usersDB.json");
       logout();
+    }
+  });
+}
+function deleteOffer() {
+  console.log(`Press "Y" to confirm`);
+  rl.question("Do you really want to delete this? ", (answer) => {
+    answer = answer.toLocaleLowerCase();
+    if (answer !== "y") {
+      inputErr(answer);
+    }
+    if (answer === "0") {
+      showCreateOffer();
+    } else if (answer === "y" && offers.length === 1) {
+      offers = [];
+      currentPage = null;
+      save(offers, "offersDB.json");
+      showCreateOffer();
+    } else {
+      const offersUpdate = offers.filter(
+        (offer) => offer.id !== currentOffer.id,
+      );
+      offers = usersUpdate;
+      currentPage = null;
+      save(offers, "offersDB.json");
+      showListOffer();
     }
   });
 }
