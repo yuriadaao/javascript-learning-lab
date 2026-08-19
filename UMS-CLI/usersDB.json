@@ -1,1 +1,1 @@
-[{"id":1,"fullName":"Yuri Adão de Aquino","birthDate":"31/01/1991","gender":"Homem Cisgênero","address":"Rio de Janeiro, Br","email":"yaadev@email.com","password":"Yuri123","plan":"FREE","role":"user","donations":[],"fullProfile":true}]
+[{"id":1,"fullName":"Yuri Adão de Aquino","birthDate":"31/01/1991","gender":"Homem Cisgênero","address":"Rio de Janeiro, Br","email":"yaadev@email.com","password":"Yuri123","plan":"FREE","role":"user","donations":["100"],"fullProfile":true}]

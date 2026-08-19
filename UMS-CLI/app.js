@@ -2,11 +2,14 @@ const readline = require("readline");
 const fs = require("fs");
 const { count } = require("console");
 const usersDB = fs.readFileSync("usersDB.json", "utf8");
+const managersDB = fs.readFileSync("managersDB.json", "utf8");
 const offersDB = fs.readFileSync("offersDB.json", "utf-8");
 const currentDate = Date.now();
 let users = JSON.parse(usersDB);
+let managers = JSON.parse(managersDB);
 let offers = JSON.parse(offersDB);
 let currentUser = null;
+let currentManager = null;
 let currentOffer = null;
 let currentPage = null;
 
@@ -42,7 +45,7 @@ const rl = readline.createInterface({
 function oneActionInput() {
   switch (currentPage) {
     case "DONATIONS":
-      buyDonation();
+      validateBuyDonation();
       break;
     case "CREATE OFFER":
       createOffer();
@@ -57,7 +60,7 @@ function oneActionInput() {
 function twoActionInput() {
   switch (currentPage) {
     case "DONATIONS":
-      listDonation();
+      validateListDonation();
       break;
     case "CREATE OFFER":
       showListOffer();
@@ -65,14 +68,14 @@ function twoActionInput() {
     case "OFFERS":
       break;
     default:
-      login();
+      validateLogin();
       break;
   }
 }
 function threeActionInput() {
   switch (currentPage) {
     case "DONATIONS":
-      lastDonation();
+      validateLastDonation();
       break;
     case "CREATE Offer":
       createOffer();
@@ -81,7 +84,7 @@ function threeActionInput() {
       favoriteOffer();
       break;
     default:
-      createUser();
+      signInValidate();
       break;
   }
 }
@@ -241,22 +244,32 @@ function renderHeader() {
     ║                                                             ║
     ╚═════════════════════════════════════════════════════════════╝
       Page: ${currentPage}          
-      User: ${currentUser.fullName}  
-      Plan: ${currentUser.plan}      
+      User: ${currentUser.fullName} || ${currentManager.enterprise}  
+      Plan: ${currentUser.plan} || ${currentManager.plan}      
      _____________________________________________________________
                                                         L- Logout`);
   }
 }
-function renderProfile(user) {
-  console.log(`
-        Nome:        ${user.fullName || "Unfinished"} \n  
-        Endereço:    ${user.address || "Unfinished"} \n
-        Data Nasc.:  ${user.birthDate || "Unfinished"} \n
-        Gênero:      ${user.gender || "Unfinished"} \n
-        Email:       ${user.email || "Unfinished"}  \n\n
-        Plano:       ${user.plan || "Unfinished"} \n 
-      ____________________________________________________`);
-  return;
+function renderProfile() {
+  if (!currentUser) {
+    console.log(`
+          Nome:        ${currentManager.enterprise || "Unfinished"} \n  
+          Endereço:    ${currentManager.address || "Unfinished"} \n
+          Email:       ${currentManager.email || "Unfinished"}  \n\n
+          Plano:       ${currentManager.plan || "Unfinished"} \n 
+        ____________________________________________________`);
+    return;
+  } else {
+    console.log(`
+          Nome:        ${currentUser.fullName || "Unfinished"} \n  
+          Endereço:    ${currentUser.address || "Unfinished"} \n
+          Data Nasc.:  ${currentUser.birthDate || "Unfinished"} \n
+          Gênero:      ${currentUser.gender || "Unfinished"} \n
+          Email:       ${currentUser.email || "Unfinished"}  \n\n
+          Plano:       ${currentUser.plan || "Unfinished"} \n 
+        ____________________________________________________`);
+    return;
+  }
 }
 function renderFooter() {
   if (currentPage === "PROFILE" || currentPage === "SELECT OFFER") {
@@ -315,7 +328,7 @@ function showLogin() {
      3 - Sign in\n\n\n
      `);
 
-  login();
+  validateLogin();
   captureInput();
   renderFooter();
 }
@@ -367,7 +380,8 @@ function showMyProfile() {
   renderProfile(currentUser);
   renderFooter();
   captureInput();
-  verifyProfile();
+  verifyUserProfile();
+  verifyManagerProfile();
   save(users, "usersDB.json");
 }
 // Página de Doações
@@ -855,6 +869,61 @@ function createID(array) {
   }
 }
 // CRIAÇÃO DE USUÁRIOS
+function signInValidate() {
+  rl.question(
+    `Choose your account type: \n
+      Press 1 - To User   or 2 - To enterprise \n  `,
+    (answer) => {
+      if (answer === "0") {
+        showHome();
+      } else if (answer === "1") {
+        createUser();
+      } else if (answer === "2") {
+        createManager();
+      } else {
+        inputErr(answer);
+      }
+    },
+  );
+}
+function createManager() {
+  let newManager = {
+    id: createID(managers),
+    entrepriseName: null,
+    address: null,
+    email: null,
+    password: null,
+    plan: "FREE",
+    role: "Manager",
+    donations: [],
+    fullProfile: null,
+  };
+  rl.question("Please enter entreprise name: \n", (enterprise) => {
+    if (nameValidation(enterprise)) {
+      newManager.entrepriseName = enterprise;
+      rl.question("Please insert your email: \n", (email) => {
+        if (emailValidation(email, managers)) {
+          newManager.email = email;
+          rl.question("Insert your password: \n", (password) => {
+            if (passwordValidation(password, managers, newManager)) {
+              rl.question("Confirm your password: \n", (rpassword) => {
+                if (password !== rpassword) {
+                  inputErr(password);
+                  return;
+                }
+                newManager.password = password;
+                currentManager = newManager;
+                managers.push(currentManager);
+                save(managers, "managersDB.json");
+                showDashBoard();
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
 function createUser() {
   let newUser = {
     id: createID(users),
@@ -897,33 +966,66 @@ function createUser() {
 }
 
 // LOGIN ITEGRATION
-
-function login() {
+function validateLogin() {
+  rl.question("Please insert your email : ", (email) => {
+    email = email.toLocaleLowerCase();
+    if (users.length === 0 && managers.length === 0) {
+      showSignin();
+    } else if (!emailValidation(email)) {
+      inputErr(email);
+    } else if (
+      !findUserByEmail(managers, email) &&
+      !findUserByEmail(users, email)
+    ) {
+      inputErr(email);
+    } else if (managers.length !== 0 && findUserByEmail(managers, email)) {
+      currentManager = findUserByEmail(managers, email);
+      currentUser = null;
+      managerLogin();
+    } else if (users.length !== 0 && findUserByEmail(users, email)) {
+      currentUser = findUserByEmail(users, email);
+      currentManager = null;
+      userLogin();
+    } else {
+      inputErr("Do you need Sign in to continue");
+    }
+  });
+}
+function managerLogin() {
+  if (managers.length === 0) {
+    showSignin();
+  } else {
+    rl.question("Now your password : ", (password) => {
+      if (password !== currentManager.password) {
+        inputErr(password);
+        return;
+      } else {
+        verifyProfile();
+        showDashBoard();
+        return currentManager;
+      }
+    });
+  }
+}
+function userLogin() {
   if (users.length === 0) {
     showSignin();
   } else {
-    rl.question("Please insert your email : ", (email) => {
-      email = email.toLocaleLowerCase();
-      if (emailValidation(email)) {
-        currentUser = findUserByEmail(users, email);
-
-        rl.question("Now your password : ", (password) => {
-          if (password !== currentUser.password) {
-            inputErr(password);
-            return;
-          } else {
-            verifyProfile();
-            showDashBoard();
-            return currentUser;
-          }
-        });
+    rl.question("Now your password : ", (password) => {
+      if (password !== currentUser.password) {
+        inputErr(password);
+        return;
+      } else {
+        verifyProfile();
+        showDashBoard();
+        return currentUser;
       }
     });
   }
 }
 
 // IMPLEMENTAÇÃO DE DOAÇÃO  ( AJUSTE DE VALIDAção *10)
-function buyDonation() {
+function userBuyDonation() {
   rl.question(
     "Enter an amount multiple of 10 to donate : (10,00)  ",
     (value) => {
@@ -939,8 +1041,7 @@ function buyDonation() {
               console.log(
                 `The amount of R$${value} was successfully donated. Thank you! `,
               );
-              renderFooter();
-              captureInput();
+              showDonations();
             }
           },
         );
@@ -948,11 +1049,44 @@ function buyDonation() {
     },
   );
 }
-function listDonation() {
+function managerBuyDonation() {
+  rl.question(
+    "Enter an amount multiple of 10 to donate : (10,00)  ",
+    (value) => {
+      if (priceValidation(value)) {
+        rl.question(
+          `R$:${value} Cofirm this Value ? \n Y[yes]     N[no]`,
+          (answer) => {
+            answer.toLocaleLowerCase();
+            if (!answer || answer !== "y") inputErr(answer);
+            else {
+              currentManager.donations.push(value);
+              currentManager.lastDonation = save(managers, "managersDB.json");
+              console.log(
+                `The amount of R$${value} was successfully donated. Thank you! `,
+              );
+              showDonations();
+            }
+          },
+        );
+      }
+    },
+  );
+}
+function validateBuyDonation() {
+  if (!currentManager) {
+    userBuyDonation();
+  } else {
+    managerBuyDonation();
+  }
+  renderFooter();
+  captureInput();
+}
+function userListDonation() {
   if (currentUser.donations.length === 0) {
     console.log(`You don't have any donations yet.`);
-    renderFooter();
-    captureInput();
+    // renderFooter();
+    // captureInput();
   } else {
     console.log(`
      Donation's list : `);
@@ -960,13 +1094,37 @@ function listDonation() {
       console.log(`                       R$${Number(i).toFixed(2)}\n`);
     }
     console.log(
-      `                          ${Number(totalDonation()).toFixed(2)}`,
+      `                          ${Number(totalDonation(currentUser)).toFixed(2)}`,
     );
-    renderFooter();
-    captureInput();
   }
 }
-function lastDonation() {
+function managerListDonation() {
+  if (currentManager.donations.length === 0) {
+    console.log(`You don't have any donations yet.`);
+    // renderFooter();
+    // captureInput();
+  } else {
+    console.log(`
+     Donation's list : `);
+    for (i of currentManager.donations) {
+      console.log(`                       R$${Number(i).toFixed(2)}\n`);
+    }
+    console.log(
+      `                          ${Number(totalDonation(currentManager)).toFixed(2)}`,
+    );
+  }
+}
+function validateListDonation() {
+  if (!currentManager) {
+    userListDonation();
+  } else {
+    managerListDonation();
+  }
+  renderFooter();
+  captureInput();
+}
+
+function userLastDonation() {
   let index = Number(currentUser.donations.length) - 1;
 
   if (currentUser.donations.length === 0) {
@@ -992,17 +1150,54 @@ function lastDonation() {
         }
       },
     );
-    renderFooter();
   }
 }
+function managerLastDonation() {
+  let index = Number(currentManager.donations.length) - 1;
+
+  if (currentManager.donations.length === 0) {
+    console.log(`You dont have anything donation yet`);
+    captureInput();
+  } else {
+    const lastDonation = Number(currentManager.donations[index]).toFixed(2);
+    console.log(`
+      Your last amount donation was R$${lastDonation}\n`);
+    rl.question(
+      "     Would you like repeat your last Donation ?  Y[yes]    N[no]",
+      (answer) => {
+        answer = answer.toLocaleLowerCase();
+        if (answer && answer === "y") {
+          currentManager.donations.push(lastDonation);
+          console.log("Thank's for your contribuition");
+          save(managers, "managersDB.json");
+          showDonations();
+        } else if (answer && answer === "n") {
+          showDonations();
+        } else {
+          inputErr("Key");
+        }
+      },
+    );
+  }
+}
+
+function validateLastDonation() {
+  if (!currentManager) {
+    userLastDonation();
+  } else {
+    managerLastDonation();
+  }
+
+  renderFooter();
+}
 // ************* IMPLEMENTAR TOTAL !!
-function totalDonation() {
-  if (currentUser.donations.length > 1) {
-    return currentUser.donations.reduce(
+function totalDonation(user) {
+  if (user.donations.length > 1) {
+    return user.donations.reduce(
       (acc, current) => Number(acc) + Number(current),
     );
-  } else if ((currentUser.donations = 1)) {
-    return currentUser.donations;
+  } else if ((user.donations.length = 1)) {
+    return user.donations;
   } else {
     return "0,00";
   }
@@ -1037,7 +1232,7 @@ function favoriteOffer() {}
 function findUserByEmail(array, email) {
   const user = array.find((user) => user.email === email);
   if (!user) {
-    inputErr(email);
+    return false;
   }
   return user;
 }
@@ -1237,7 +1432,14 @@ function deleteOffer() {
   });
 }
 // Verifica integridade de perfil
-function verifyProfile() {
+function verifyManagerProfile() {
+  if (!currentManager.enterprise || !currentManager.address) {
+    return (currentManager.fullProfile = false);
+  } else {
+    return (currentManager.fullProfile = true);
+  }
+}
+function verifyUserProfile() {
   if (
     !currentUser.fullName ||
     !currentUser.birthDate ||
@@ -1249,6 +1451,7 @@ function verifyProfile() {
     return (currentUser.fullProfile = true);
   }
 }
+
 //Salvando no Banco
 function save(array, database) {
   fs.writeFileSync(database, JSON.stringify(array));
@@ -1257,6 +1460,9 @@ function save(array, database) {
 //Saindo do Usuário
 function logout() {
   currentUser = null;
+  currentManager = null;
+  currentOffer = null;
+  currentPage = null;
   showHome();
 }
 //Gerenciamento de permissões
