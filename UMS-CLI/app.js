@@ -17,30 +17,6 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-//    ********* CAPTURA DE ENTRADAS ********** (ANDAMENTO)
-
-// Donation input
-// function donationInput() {
-//   rl.question("Enter the option do you want : ", (answer) => {
-//     switch (answer) {
-//       case "0":
-//         exitInput();
-//         break;
-//       case "1":
-//         buyDonation();
-//         break;
-//       case "2":
-//         listDonation();
-//         break;
-//       case "3":
-//         lastDonation();
-//         break;
-//       default:
-//         inputErr(answer);
-//         break;
-//     }
-//   });
-// }
 
 function oneActionInput() {
   switch (currentPage) {
@@ -137,6 +113,7 @@ function categoryInput(category) {
 // Input Global
 function captureInput() {
   rl.question("", (answer) => {
+    answer = answer.toLocaleLowerCase();
     switch (answer) {
       case "0":
         exitInput();
@@ -168,13 +145,13 @@ function captureInput() {
       case "9":
         permissions();
         break;
-      case "E":
+      case "e":
         currentEdit();
         break;
-      case "D":
+      case "d":
         currentDelete();
         break;
-      case "L":
+      case "l":
         logout();
         break;
       default:
@@ -187,15 +164,19 @@ function captureInput() {
 }
 
 function currentEdit() {
-  if (currentPage === "PROFILE") {
-    editProfile();
+  if (currentUser && currentPage === "PROFILE") {
+    editUserProfile();
+  } else if (currentManager && currentPage === "PROFILE") {
+    editManagerProfile();
   } else {
     editMyOffers();
   }
 }
 function currentDelete() {
-  if (currentPage === "PROFILE") {
+  if (currentUser && currentPage === "PROFILE") {
     deleteUser();
+  } else if (currentManager && currentPage === "PROFILE") {
+    deleteManager();
   } else {
     deleteOffer();
   }
@@ -236,7 +217,7 @@ function renderHeader() {
       User: ---                    
       Plan: ---                    
      _____________________________________________________________`);
-  } else {
+  } else if (!currentManager) {
     console.log(`  
     ╔═════════════════════════════════════════════════════════════╗
     ║                                                             ║
@@ -244,16 +225,28 @@ function renderHeader() {
     ║                                                             ║
     ╚═════════════════════════════════════════════════════════════╝
       Page: ${currentPage}          
-      User: ${currentUser.fullName} || ${currentManager.enterprise}  
-      Plan: ${currentUser.plan} || ${currentManager.plan}      
+      User: ${currentUser.fullName}   
+      Plan: ${currentUser.plan}      
+     _____________________________________________________________
+                                                        L- Logout`);
+  } else {
+    console.log(`  
+    ╔═════════════════════════════════════════════════════════════╗
+    ║                                                             ║
+    ║                          UMS - CLI                          ║
+    ║                                                             ║
+    ╚═════════════════════════════════════════════════════════════╝
+      Page:       ${currentPage}          
+      Enterprise: ${currentManager.enterpriseName}  
+      Plan:       ${currentManager.plan}      
      _____________________________________________________________
                                                         L- Logout`);
   }
 }
 function renderProfile() {
-  if (!currentUser) {
+  if (currentManager) {
     console.log(`
-          Nome:        ${currentManager.enterprise || "Unfinished"} \n  
+          Nome:        ${currentManager.enterpriseName || "Unfinished"} \n  
           Endereço:    ${currentManager.address || "Unfinished"} \n
           Email:       ${currentManager.email || "Unfinished"}  \n\n
           Plano:       ${currentManager.plan || "Unfinished"} \n 
@@ -299,6 +292,29 @@ function renderTotal(array) {
     `
                                                    Total : ${array.length}`,
   );
+}
+
+function validateDashBoard() {
+  if (currentUser.role === "ADMIN") {
+    console.log(` 
+      4- My Profile 
+      5- Offer 
+      6- Donations  
+      7- Search Users
+      8- Create Offers 
+      9- Permissions \n\n`);
+  } else if (!currentManager) {
+    console.log(` 
+      4- My Profile 
+      5- Offer 
+      6- Donations  \n\n`);
+  } else {
+    console.log(` 
+      4- My Profile  
+      6- Donations  
+      7- Search Users
+      8- Create Offers\n\n`);
+  }
 }
 
 //                     FLOW'S PAGE
@@ -351,19 +367,14 @@ function showSignin() {
 function showDashBoard() {
   currentPage = "DASHBOARD";
   renderHeader();
-  if (!currentUser.fullProfile) {
+  if (currentUser && !verifyUserProfile()) {
+    console.log(`   
+     You need finish your registration! `);
+  } else if (currentManager && !verifyManagerProfile()) {
     console.log(`   
      You need finish your registration! `);
   }
-
-  console.log(` 
-      4- My Profile 
-      5- Offer 
-      6- Donations  
-      7- Search Users
-      8- Create Offers 
-      9- Permissions \n\n`);
-
+  validateDashBoard();
   renderFooter();
   captureInput();
 }
@@ -371,17 +382,17 @@ function showDashBoard() {
 //      Página Perfil
 function showMyProfile() {
   currentPage = "PROFILE";
-  verifyProfile(currentUser);
   renderHeader();
-  if (!currentUser.fullProfile) {
+  if (currentUser && !verifyUserProfile()) {
+    console.log(`   
+        Complete your registration : \n`);
+  } else if (currentManager && !verifyManagerProfile()) {
     console.log(`   
         Complete your registration : \n`);
   }
   renderProfile(currentUser);
   renderFooter();
   captureInput();
-  verifyUserProfile();
-  verifyManagerProfile();
   save(users, "usersDB.json");
 }
 // Página de Doações
@@ -716,19 +727,19 @@ function createDescription(array) {
   );
 }
 
-function createEnterprise(array) {
-  rl.question("Insert a enterprise name: ", (enterprise) => {
-    if (enterpriseNameValidation(enterprise)) {
-      array.enterprise = enterprise;
-      createDescription(array);
-    }
-  });
-}
+// function createEnterprise(array) {
+//   rl.question("Insert a enterprise name: ", (enterprise) => {
+//     if (enterpriseNameValidation(enterprise)) {
+//       array.enterprise = enterprise;
+//       createDescription(array);
+//     }
+//   });
+// }
 function createDateExpiration(array) {
   rl.question("Insert a expiration date: ex.(xx/xx/xxx) ", (date) => {
     if (dateValidation(date)) {
       array.expirationDate = date;
-      createEnterprise(array);
+      createDescription(array);
     }
   });
 }
@@ -889,7 +900,7 @@ function signInValidate() {
 function createManager() {
   let newManager = {
     id: createID(managers),
-    entrepriseName: null,
+    enterpriseName: null,
     address: null,
     email: null,
     password: null,
@@ -900,9 +911,12 @@ function createManager() {
   };
   rl.question("Please enter entreprise name: \n", (enterprise) => {
     if (nameValidation(enterprise)) {
-      newManager.entrepriseName = enterprise;
+      newManager.enterpriseName = enterprise;
       rl.question("Please insert your email: \n", (email) => {
-        if (emailValidation(email, managers)) {
+        email = email.toLocaleLowerCase();
+        if (findUserByEmail(managers, email) || findUserByEmail(users, email)) {
+          inputErr("Email been registered");
+        } else if (emailValidation(email)) {
           newManager.email = email;
           rl.question("Insert your password: \n", (password) => {
             if (passwordValidation(password, managers, newManager)) {
@@ -942,7 +956,10 @@ function createUser() {
     if (nameValidation(fullName)) {
       newUser.fullName = fullName;
       rl.question("Please insert your email: \n", (email) => {
-        if (emailValidation(email, users)) {
+        email = email.toLocaleLowerCase();
+        if (findUserByEmail(managers, email) || findUserByEmail(users, email)) {
+          inputErr("Email been registered");
+        } else if (emailValidation(email)) {
           newUser.email = email;
           rl.question("Insert your password: \n", (password) => {
             if (passwordValidation(password, users, newUser)) {
@@ -1000,7 +1017,7 @@ function managerLogin() {
         inputErr(password);
         return;
       } else {
-        verifyProfile();
+        verifyManagerProfile();
         showDashBoard();
         return currentManager;
       }
@@ -1016,7 +1033,7 @@ function userLogin() {
         inputErr(password);
         return;
       } else {
-        verifyProfile();
+        verifyUserProfile();
         showDashBoard();
         return currentUser;
       }
@@ -1205,11 +1222,11 @@ function totalDonation(user) {
 
 function createOffer() {
   const newOffer = {
-    userID: currentUser.id,
+    userID: currentManager.id,
     offerID: createID(offers),
     category: [],
     expirationDate: null,
-    enterprise: null,
+    enterprise: currentManager.enterpriseName,
     description: null,
     value: null,
   };
@@ -1217,7 +1234,7 @@ function createOffer() {
 }
 
 function listOffer() {
-  let listOffer = offers.filter((offer) => offer.userID === currentUser.id);
+  let listOffer = offers.filter((offer) => offer.userID === currentManager.id);
 
   if (listOffer.length < 1) {
     console.log("You don't have yet anyone offer");
@@ -1240,6 +1257,22 @@ function findUserByEmail(array, email) {
 //   *****************Editando Dados **************
 
 // Editando nome
+function editEnterpriseName() {
+  rl.question("Choose new  name: \n", (enterprise) => {
+    if (nameValidation(fullName)) {
+      currentManager.enterpriseName = enterprise;
+      showMyProfile();
+    }
+  });
+}
+function editEnterpriseAddress() {
+  rl.question("Enter your Address: \n", (address) => {
+    if (nameValidation(address)) {
+      currentManager.address = address;
+      showMyProfile();
+    }
+  });
+}
 function editName() {
   rl.question("Enter your full name: \n", (fullName) => {
     if (nameValidation(fullName)) {
@@ -1316,10 +1349,10 @@ function editMyOffers() {
      "value"\n
     `);
   if (captureInput) {
-    dataSelect(editDescription, editValue);
+    dataOfferSelect(editDescription, editValue);
   }
 }
-function editProfile() {
+function editUserProfile() {
   console.log(`
   ATENTION!
   =====================================================\n  
@@ -1335,10 +1368,23 @@ function editProfile() {
     dataSelect(editName, editBirthDate, editGender, editAddress);
   }
 }
-function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
+function editManagerProfile() {
+  console.log(`
+  ATENTION!
+  =====================================================\n  
+  Only the following options can be changed. 
+  Choose one of them:\n
+  =====================================================\n 
+     "enterprise"\n
+     "address"
+    `);
+  if (captureInput) {
+    dataManagerSelect(editEnterpriseName, editEnterpriseAddress);
+  }
+}
+function dataUserSelect() {
   rl.question(" Choose an option:  ", (data) => {
     if (
-      currentPage === "PROFILE" &&
       data !== "name" &&
       data !== "birthdate" &&
       data !== "gender" &&
@@ -1346,31 +1392,30 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
     ) {
       inputErr(data);
       return;
-    } else if (currentPage === "PROFILE") {
+    } else {
       switch (data) {
         case "name":
-          firstCall();
+          editName();
           break;
         case "birthdate":
-          secondCall();
+          editBirthDate();
           break;
         case "gender":
-          thirdCall();
+          editGender();
           break;
         case "address":
-          forthCall();
+          editAddress();
           break;
       }
-    } else if (
-      currentPage === "PROFILE" &&
-      data !== "name" &&
-      data !== "birthdate" &&
-      data !== "gender" &&
-      data !== "address"
-    ) {
+    }
+  });
+}
+function dataOfferSelect() {
+  rl.question(" Choose an option:  ", (data) => {
+    if (data !== "description" && data !== "value") {
       inputErr(data);
       return;
-    } else if (currentPage === "SELECT OFFER") {
+    } else {
       switch (data) {
         case "description":
           editDescription();
@@ -1385,7 +1430,49 @@ function dataSelect(firstCall, secondCall, thirdCall, forthCall) {
     }
   });
 }
+function dataManagerSelect() {
+  rl.question(" Choose an option:  ", (data) => {
+    if (data !== "address" && data !== "enterprise") {
+      inputErr(data);
+      return;
+    } else {
+      switch (data) {
+        case "enterprise":
+          editEnterpriseName();
+          break;
+        case "address":
+          editEnterpriseAddress();
+          break;
+        default:
+          showMyProfile();
+          break;
+      }
+    }
+  });
+}
 // Deletando Usuário ( Atualmente possuí Bug de replicação quando o banco é zerado)
+function deleteManager() {
+  console.log(`Press "Y" to confirm`);
+  rl.question("Do you really want to delete this? ", (answer) => {
+    answer = answer.toLocaleLowerCase();
+    if (answer !== "y") {
+      inputErr(answer);
+    } else if (answer === "0") {
+      showMyProfile();
+    } else if (answer === "y" && managers.length === 1) {
+      managers = [];
+      save(managers, "managersDB.json");
+      logout();
+    } else {
+      const managersUpdate = managers.filter(
+        (manager) => manager.id !== currentManager.id,
+      );
+      managers = managersUpdate;
+      save(managers, "managersDB.json");
+      logout();
+    }
+  });
+}
 function deleteUser() {
   console.log(`Press "Y" to confirm`);
   rl.question("Do you really want to delete this? ", (answer) => {
@@ -1394,7 +1481,7 @@ function deleteUser() {
       inputErr(answer);
     } else if (answer === "0") {
       showMyProfile();
-    } else if (answer === "y" && array.length === 1) {
+    } else if (answer === "y" && users.length === 1) {
       users = [];
       save(users, "usersDB.json");
       logout();
